@@ -1,0 +1,13 @@
+*
+
+# Keep packages
+!gnu-toolchain/
+!gnu-toolchain/**
+# Keep project files
+!.gitignore
+
+# Discard all build files
+**/build*/
+**/build*/**
+**/__pycache__/
+**/__pycache__/**
