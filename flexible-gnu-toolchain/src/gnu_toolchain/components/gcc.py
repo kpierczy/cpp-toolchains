@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Wednesday, 2nd October 2024 1:02:02 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Wednesday, 2nd October 2024 1:34:10 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -53,6 +53,7 @@ class Gcc(AutotoolsPackage):
 
             # Build the LibC
             libc_descriptor.make_driver(
+                prefix      = self.prefix,
                 target      = self.target,
                 pkg_version = self.pkg_version,
             ).build(
