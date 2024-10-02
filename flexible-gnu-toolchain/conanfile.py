@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Tuesday, 1st October 2024 8:49:26 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Wednesday, 2nd October 2024 1:07:46 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -29,6 +29,7 @@ required_conan_version = '>=2.0.0'
 
 # Conan imports
 from conan import ConanFile
+from conan.tools.files import copy
 # Package imports
 from gnu_toolchain.from_source import FromSourceDriver
 from gnu_toolchain.prebuilt    import PrebuiltDriver
@@ -37,12 +38,12 @@ from gnu_toolchain.prebuilt    import PrebuiltDriver
 
 class GnuToolchainConan(ConanFile):
     
-    name        = 'gnu-toolchain'
+    name        = 'flexible-gnu-toolchain'
     version     = '0.0.1'
     license     = 'MIT'
     author      = 'Krzysztof Pierczyk'
     description = 'Conan package providing fully functional GNU toolchain'
-    homepage    = 'https://github.com/kpierczy/cpp-toolchains/gnu-toolchain'
+    homepage    = 'https://github.com/kpierczy/cpp-toolchains/flexible-gnu-toolchain'
     topics      = [ 'gcc', 'g++', 'binutils', 'libc', 'libstdc++' ]
 
     # ------------------------------------------------------------------ #
@@ -53,73 +54,30 @@ class GnuToolchainConan(ConanFile):
 
     options = {
 
+        # Prebuilt or from source
         'prebuilt' : [ True, False ],
-
-        # Common config
-        'with_config' : [ 'ANY' ],
-        'with_doc'    : [ True, False ],
-
-        # Dependencies versions
-        "with_zlib_version"     : [ 'ANY' ],
-        "with_gmp_version"      : [ 'ANY' ],
-        "with_mpfr_version"     : [ 'ANY' ],
-        "with_mpc_version"      : [ 'ANY' ],
-        "with_isl_version"      : [ 'ANY' ],
-        "with_elfutils_version" : [ 'ANY' ],
-        "with_expat_version"    : [ 'ANY' ],
-        # Versions
-        "with_binutils_version" : [ 'ANY' ],
-        "with_gcc_version"      : [ 'ANY' ],
-        "with_glibc_version"    : [ 'ANY' ],
-        "with_newlib_version"   : [ 'ANY' ],
-        "with_gdb_version"      : [ 'ANY' ],
-                
-        # Source
-        "with_binutils_url" : [ 'ANY' ],
-        "with_gcc_url"      : [ 'ANY' ],
-        "with_glibc_url"    : [ 'ANY' ],
-        "with_newlib_url"   : [ 'ANY' ],
-        "with_gdb_url"      : [ 'ANY' ],
         
-    }
+        # Toolchain target
+        'target' : [ 'ANY' ],
+        # GCC version
+        'with_gcc_version' : [ 'ANY' ],
+        
+    } | FromSourceDriver.options | PrebuiltDriver.options
 
     default_options = {
 
-        'prebuilt' : False,
-        
-        # Common config
-        'with_config' : None,
-        'with_doc'    : True,
+        'prebuilt'         : False,
+        'target'           : 'arm-none-eabi',
+        'with_gcc_version' : '14.2.0',
 
-        # Dependencies versions
-        "with_zlib_version"     : "[>=1.2.11]",
-        "with_gmp_version"      : "[>=6.2.1]",
-        "with_mpfr_version"     : "[>=4.1.0 <=4.2.0]",
-        "with_mpc_version"      : "[>=1.2.1]",
-        "with_isl_version"      : "[>=0.18]",
-        "with_elfutils_version" : "[>=0.186]",
-        "with_expat_version"    : "[>=2.4.6]",
-        # Versions
-        "with_binutils_version" : "2.43",
-        "with_gcc_version"      : "14.2.0",
-        "with_glibc_version"    : "2.34",
-        "with_newlib_version"   : "4.2.0.20211231",
-        "with_gdb_version"      : "11.1",
-                
-        # Source
-        "with_binutils_url" : "https://ftp.gnu.org/gnu/binutils/binutils-{version}.tar.gz",
-        "with_gcc_url"      : "https://ftp.gnu.org/gnu/gcc/gcc-{version}/gcc-{version}.tar.gz",
-        "with_glibc_url"    : "https://ftp.gnu.org/gnu/glibc/glibc-{version}.tar.gz",
-        "with_newlib_url"   : "ftp://sourceware.org/pub/newlib/newlib-{version}.tar.gz",
-        "with_gdb_url"      : "https://ftp.gnu.org/gnu/gdb/gdb-{version}.tar.gz",
-        
-    }
+    } | FromSourceDriver.default_options | PrebuiltDriver.default_options
 
     # ------------------------------------------------------------------ #
 
     exports = [
         "data/*.py",
         "src/**/*.py",
+        "license",
     ]
 
     # ---------------------------------------------------------------------------- #
@@ -127,10 +85,10 @@ class GnuToolchainConan(ConanFile):
     @property
     def _impl(self):
         if self.options.prebuilt:
-            return PrebuiltDriver(self, version = self.options.with_gcc_version)
+            return PrebuiltDriver(self)
         else:
             return FromSourceDriver(self)
-
+        
     # ---------------------------------------------------------------------------- #
 
     def configure(self):
@@ -149,6 +107,10 @@ class GnuToolchainConan(ConanFile):
         self._impl.build()
 
     def package(self):
+
+        # Install the license
+        copy(self, pattern="license", src=self.build_folder, dst=self.package_folder)
+        # Install the package
         self._impl.package()
 
     def package_info(self):
@@ -160,10 +122,14 @@ class GnuToolchainConan(ConanFile):
         self.info.settings.rm_safe("compiler")
         self.info.settings.rm_safe("build_type")
 
-        # For prebuilt packages, remove all options except for the 'prebuilt' and 'with_gcc_version'
+        # Pick unused driver
         if self.info.options.prebuilt:
-            for opt in GnuToolchainConan.options.keys():
-                if opt != 'prebuilt' and opt != 'with_gcc_version':
-                    self.info.options.rm_safe(opt)
+            other_impl = FromSourceDriver
+        else:
+            other_impl = PrebuiltDriver
+        
+        # Remove all options of the unused implementation
+        for opt in other_impl.options.keys():
+            self.info.options.rm_safe(opt)
 
 # ================================================================================================================================== #

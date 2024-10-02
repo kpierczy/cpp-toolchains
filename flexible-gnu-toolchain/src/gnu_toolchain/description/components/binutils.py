@@ -1,9 +1,9 @@
 # ====================================================================================================================================
-# @file       __init__.py
+# @file       binutils.py
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
-# @date       Tuesday, 1st October 2024 10:19:17 am
-# @modified   Tuesday, 1st October 2024 7:02:35 pm by Krzysztof Pierczyk (you@you.you)
+# @date       Wednesday, 2nd October 2024 6:29:53 am
+# @modified   Wednesday, 2nd October 2024 12:08:08 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -11,8 +11,20 @@
 
 # ============================================================ Imports ============================================================= #
 
+# Package imports
+from gnu_toolchain.description.components.common import CommonDescription
 from gnu_toolchain.components.binutils import Binutils
-from gnu_toolchain.components.gcc      import Gcc
-from gnu_toolchain.components.gdb      import Gdb
+
+# ======================================================= BinutilsDescription ====================================================== #
+
+class BinutilsDescription(CommonDescription):
+    
+    # Default name for the binutils build
+    name = 'binutils'
+    # Default dependency name
+    dep_name = 'binutils'
+
+    # Associated driver
+    driver = Binutils
 
 # ================================================================================================================================== #

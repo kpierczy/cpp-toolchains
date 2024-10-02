@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Tuesday, 1st October 2024 7:12:31 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Wednesday, 2nd October 2024 10:05:24 am by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -20,10 +20,14 @@ class PrebuiltDriver():
 
     def __init__(self,
         conanfile,
-        version,
     ):
         self.conanfile = conanfile
-        self.version   = version
+
+    # ------------------------------------------------------------------ #
+
+    options = { }
+    
+    default_options = { }
         
     # ---------------------------------------------------------------------------- #
 

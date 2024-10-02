@@ -1,10 +1,11 @@
 *
 
 # Keep packages
-!gnu-toolchain/
-!gnu-toolchain/**
+!flexible-gnu-toolchain/
+!flexible-gnu-toolchain/**
 # Keep project files
 !.gitignore
+!readme.md
 
 # Discard all build files
 **/build*/

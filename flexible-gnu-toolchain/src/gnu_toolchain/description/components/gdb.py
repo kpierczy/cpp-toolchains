@@ -1,9 +1,9 @@
 # ====================================================================================================================================
-# @file       __init__.py
+# @file       gdb.py
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
-# @date       Tuesday, 1st October 2024 11:46:51 am
-# @modified   Tuesday, 1st October 2024 7:02:47 pm by Krzysztof Pierczyk (you@you.you)
+# @date       Wednesday, 2nd October 2024 6:29:53 am
+# @modified   Wednesday, 2nd October 2024 12:08:30 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -11,15 +11,20 @@
 
 # ============================================================ Imports ============================================================= #
 
-# Private imports
-from gnu_toolchain.components.libc.newlib import Newlib
+# Package imports
+from gnu_toolchain.description.components.common import CommonDescription
+from gnu_toolchain.components.gdb import Gdb
 
-# ======================================================= pick_library_driver ====================================================== #
+# ========================================================= GdbDescription ========================================================= #
 
-def pick_library_driver(lib_name):
-    match lib_name:
-        case 'newlib': return Newlib
-        case _:
-            raise ValueError(f"Unknown library driver: {lib_name}")
+class GdbDescription(CommonDescription):
+    
+    # Default name for the GDB build
+    name = 'gdb'
+    # Default dependency name
+    dep_name = 'gdb'
+
+    # Associated driver
+    driver = Gdb
 
 # ================================================================================================================================== #
