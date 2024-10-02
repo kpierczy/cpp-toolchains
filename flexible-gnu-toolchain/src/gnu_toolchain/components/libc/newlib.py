@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:17:30 am
-# @modified   Wednesday, 2nd October 2024 12:24:58 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Wednesday, 2nd October 2024 2:10:03 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -41,6 +41,9 @@ class Newlib(AutotoolsPackage):
                 'pdf',
                 'html',
             ],
+
+            # Newlib does not handle parallel installation very well
+            install_args = [ '-j1' ],
             
         )
 

@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Wednesday, 2nd October 2024 1:02:42 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Wednesday, 2nd October 2024 2:09:30 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -84,10 +84,12 @@ class AutotoolsPackage:
         conanfile,
         
         target        : str = None,
+        build_args    : list | None = None,
         doc_targets   : list = [],
         extra_targets : list = [],
 
         install_target        : str = 'install',
+        install_args          : list | None = None,
         doc_install_targets   : list = [],
         extra_install_targets : list = [],
         extra_install_files   : dict = {},
@@ -139,6 +141,7 @@ class AutotoolsPackage:
                     dirs,
                     autotools,
                     build_target = target,
+                    build_args = build_args,
                     doc_targets = doc_targets,
                     extra_targets = extra_targets,
                 )
@@ -166,6 +169,7 @@ class AutotoolsPackage:
                     dirs,
                     autotools,
                     install_target = install_target,
+                    install_args = install_args,
                     doc_install_targets = doc_install_targets,
                     extra_install_targets = extra_install_targets,
                     extra_install_files = extra_install_files,
@@ -304,8 +308,9 @@ class AutotoolsPackage:
         conanfile,
         dirs,
         autotools,
-        build_target : str | None = None,
-        doc_targets : list = [ ],
+        build_target  : str | None = None,
+        build_args    : list | None = None,
+        doc_targets   : list = [ ],
         extra_targets : list = [],
     ):
         with contextlib.chdir(dirs.build_dir):
@@ -322,21 +327,22 @@ class AutotoolsPackage:
                 os.environ.update(env)
 
             # Build the project
-            autotools.make(target = build_target)
+            autotools.make(target = build_target, args = build_args)
             # Build extra targets if needed
             if extra_targets:
                 for target in extra_targets:
-                    autotools.make(target = target)
+                    autotools.make(target = target, args = build_args)
             # Build doc targets if needed
             if conanfile.options.with_doc and (not self.description.without_doc):
                 for target in doc_targets:
-                    autotools.make(target = target)
+                    autotools.make(target = target, args = build_args)
     
     def _install_project(self,
         conanfile,
         dirs,
         autotools,
         install_target        : str = 'install',
+        install_args          : list | None = None,
         doc_install_targets   : list = [],
         extra_install_targets : list = [],
         extra_install_files   : dict = {},
@@ -355,7 +361,7 @@ class AutotoolsPackage:
             # Compile install args
             install_args = [
                 destdir,
-            ]
+            ] + (install_args if install_args else [ ])
 
             # Install the project
             autotools.install(
