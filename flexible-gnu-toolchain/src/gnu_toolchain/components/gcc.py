@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Wednesday, 2nd October 2024 1:34:10 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 6:04:29 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -23,21 +23,18 @@ from gnu_toolchain.utils.autotools import AutotoolsPackage
 
 class Gcc(AutotoolsPackage):
 
-    def _extend_path(self,
-        conanfile,
-    ):
+    def _extend_path(self):
 
         """Extends Path with the <prefix>/bin directory if not already present"""
 
-        bin_dir = self.get_dirs(conanfile).prefixed_install_dir / 'bin'
+        bin_dir = self.dirs.prefix / 'bin'
 
         # If the path does not contain the install directory, prepend it
         if not bin_dir.as_posix() in os.environ["PATH"]:
             os.environ["PATH"] = f"{bin_dir.as_posix()}{os.pathsep}{os.environ['PATH']}"
 
-    def build(self,
-        conanfile,
-    ):
+    def build(self):
+
         # Build the LibC, if present
         if self.description.libc is not None:
 
@@ -47,51 +44,40 @@ class Gcc(AutotoolsPackage):
             # Resolve target files path patterns, if present
             if self.description.libc.target_files is not None:
                 libc_descriptor.target_files = self._resolve_libc_target_files(
-                    conanfile,
                     libc_descriptor.target_files
                 )
 
             # Build the LibC
             libc_descriptor.make_driver(
-                prefix      = self.prefix,
+                conanfile   = self.conanfile,
                 target      = self.target,
                 pkg_version = self.pkg_version,
-            ).build(
-                conanfile,
-            )
+            ).build()
 
         # Add basic GCC options
         self.description.config += [
             
             f"--with-pkgversion={self.pkg_version}",
 
-            f"--with-gmp={conanfile.dependencies["gmp"].package_folder}",
-            f"--with-mpfr={conanfile.dependencies["mpfr"].package_folder}",
-            f"--with-mpc={conanfile.dependencies["mpc"].package_folder}",
-            f"--with-isl={conanfile.dependencies["isl"].package_folder}",
-            f"--with-libelf={conanfile.dependencies["elfutils"].package_folder}",
+            f"--with-gmp={self.conanfile.dependencies["gmp"].package_folder}",
+            f"--with-mpfr={self.conanfile.dependencies["mpfr"].package_folder}",
+            f"--with-mpc={self.conanfile.dependencies["mpc"].package_folder}",
+            f"--with-isl={self.conanfile.dependencies["isl"].package_folder}",
+            f"--with-libelf={self.conanfile.dependencies["elfutils"].package_folder}",
             
-            f"--libexecdir=${{prefix}}/lib",
+            f"--libexecdir={self.dirs.prefix}/lib",
             f"--with-python-dir=share/gcc-{self.target}",
             
         ]
 
-        # Compute rel between in-tree and out-of-tree build dirs
-        off_install_rel_to_install = self.get_dirs(conanfile).off_install_rel_to_install
-
         # Add options depending on whether we build in-tree or out-of-tree
         if self.description.target_files is None:
             self.description.config += [
-
-                f"--with-sysroot=${{prefix}}/{self.target}",
-
+                f"--with-sysroot={self.dirs.prefix}/{self.target}",
             ]
         else:
             self.description.config += [
-
-                f"--prefix={off_install_rel_to_install.as_posix()}",
-                f"--with-sysroot=${{prefix}}/{off_install_rel_to_install.as_posix()}/{self.target}",
-
+                f"--with-sysroot={self.dirs.offprefix}/{self.target}",
             ]
 
         # Pick targets to be built
@@ -101,14 +87,14 @@ class Gcc(AutotoolsPackage):
         }
 
         # Create symbolic link to the <install_dir> from <install_dir>/<target>/usr
-        install_dir = self.get_dirs(conanfile).prefixed_install_dir
+        install_dir = self.dirs.prefix
         usr_dir = install_dir / self.target / 'usr'
         if usr_dir.exists():
             usr_dir.unlink()
         usr_dir.symlink_to(install_dir)
 
         # Build the project
-        super().build(conanfile,
+        super().build(
                       
             **targets,
                       
@@ -119,14 +105,13 @@ class Gcc(AutotoolsPackage):
         )
 
         # Prepend PATH with the new GCC
-        self._extend_path(conanfile)
+        self._extend_path()
         
     # ---------------------------------------------------------------------------- #
 
-    def _get_multilib_dirs(self,
-                           conanfile
-    ):
-        gcc_path = self.get_dirs(conanfile).prefixed_install_dir / 'bin' / f'{self.target}-gcc'
+    def _get_multilib_dirs(self):
+
+        gcc_path = self.dirs.prefix / 'bin' / f'{self.target}-gcc'
 
         # Run the GCC to get the list of multilib dirs
         result = subprocess.run([
@@ -146,12 +131,11 @@ class Gcc(AutotoolsPackage):
         return multilib_dirs    
 
     def _resolve_libc_target_files(self,
-        conanfile,
         target_files,
     ):
         # Prepare mappings
         mappings = {
-            '{multilib_dir}' : self._get_multilib_dirs(conanfile),
+            '{multilib_dir}' : self._get_multilib_dirs(),
         }
         
         result = { }

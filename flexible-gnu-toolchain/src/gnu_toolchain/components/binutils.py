@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Wednesday, 2nd October 2024 9:45:47 am by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 1:20:34 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -18,17 +18,16 @@ from gnu_toolchain.utils.autotools import AutotoolsPackage
 
 class Binutils(AutotoolsPackage):
 
-    def build(self,
-        conanfile,
-    ):
+    def build(self):
+
         # Extend the config
         self.description.config += [
             f"--with-pkgversion={self.pkg_version}",
-            f"--with-sysroot=${{prefix}}/{self.target}" 
+            f"--with-sysroot={self.dirs.prefix}/{self.target}" 
         ]
         
         # Build the project
-        super().build(conanfile,
+        super().build(
                       
             doc_install_targets = [
                 'install-html install-pdf',

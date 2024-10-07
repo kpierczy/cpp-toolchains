@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:17:30 am
-# @modified   Wednesday, 2nd October 2024 2:10:03 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 1:20:48 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -22,19 +22,16 @@ class Newlib(AutotoolsPackage):
 
     '''Builder class for the newlib library'''
 
-    def build(self,
-        conanfile,
-    ):
-        # Get the directories
-        dirs = self.get_dirs(conanfile)
+    def build(self):
+        
         # Build the project
-        super().build(conanfile,
+        super().build(
         
             extra_install_files = {
-                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : dirs.doc_install_dir_rel / 'pdf'  / 'libc.pdf',
-                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : dirs.doc_install_dir_rel / 'pdf'  / 'libc.pdf',
-                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.html' : dirs.doc_install_dir_rel / 'html' / 'libc.pdf',
-                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.html' : dirs.doc_install_dir_rel / 'html' / 'libc.pdf',
+                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : self.dirs.doc / 'pdf'  / 'libc.pdf',
+                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : self.dirs.doc / 'pdf'  / 'libc.pdf',
+                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.html' : self.dirs.doc / 'html' / 'libc.pdf',
+                pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.html' : self.dirs.doc / 'html' / 'libc.pdf',
             },
             
             doc_install_targets = [

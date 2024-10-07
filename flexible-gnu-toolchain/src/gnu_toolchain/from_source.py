@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Wednesday, 2nd October 2024 1:10:21 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 4:06:44 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -13,6 +13,9 @@
 
 # Standard imports
 import pathlib
+import shutil
+import glob
+import re
 from importlib.machinery import SourceFileLoader
 # Conan imports
 from conan.tools.layout import basic_layout
@@ -20,7 +23,7 @@ from conan.tools.files import copy
 from conan.tools.gnu import AutotoolsToolchain
 # Package imports
 from gnu_toolchain.components import *
-from gnu_toolchain.utils.autotools import get_standard_dirs
+from gnu_toolchain.utils.autotools import AutotoolsPackage
 
 # ======================================================== FromSourceDriver ======================================================== #
 
@@ -86,17 +89,6 @@ class FromSourceDriver():
         "with_gdb_url"      : "https://ftp.gnu.org/gnu/gdb/gdb-{version}.tar.gz",
         
     }
-        
-    # ---------------------------------------------------------------------------- #
-
-    # -----------------------------------------------------
-    # @note Custom install prefix passed to the autotools
-    #    is used really only because some of the
-    #    components (I'm looking at you, Newlib) do not
-    #    concatenate the default prefix (/) with the
-    #    DESTDIR variable correctly.
-    # -----------------------------------------------------
-    install_prefix = '/flexible-gnu-toolchain'
 
     # ---------------------------------------------------------------------------- #
 
@@ -129,26 +121,31 @@ class FromSourceDriver():
         basic_layout(self.conanfile, src_folder = "src")
 
     def generate(self):
+
+        # Generate autotools toolchain
         AutotoolsToolchain(
             conanfile = self.conanfile,
-            prefix    = self.install_prefix
         ).generate()
+
+        # Remove some of the auto-generated build flags to avoid toolchain conflicts
+        self._remove_build_flags_from_env([
+            r'-m(32|64)',
+            r'-O[0-9]',
+        ])
 
     def build(self):
         for component_description in self._description.components:
             component_description.make_driver(
-                prefix      = self.install_prefix,
+                conanfile   = self.conanfile,
                 target      = self._description.target,
                 pkg_version = self._description.pkg_version,
-            ).build(
-                self.conanfile
-            )
+            ).build()
 
     def package(self):
         copy(self,
             pattern = '*',
-            src     = pathlib.Path(get_standard_dirs().install_dir.as_posix() + self.install_prefix),
-            dst     = self.conanfile.package_folder
+            src     = AutotoolsPackage.make_dirs(self).install.as_posix(),
+            dst     = self.conanfile.package_folder,
         )
     
     def package_info(self):
@@ -176,5 +173,24 @@ class FromSourceDriver():
             )
 
         return self._description_cache
+    
+    def _remove_build_flags_from_env(self,
+        flags_patterns : list,                                 
+    ):
+        # Find the conanautotoolstoolchain.<sys-ext> scrtipt in the generators_folder
+        autotools_toolchain_files = glob.glob(f"{self.conanfile.generators_folder}/conanautotoolstoolchain.*")
+
+        assert len(autotools_toolchain_files) == 1, \
+            f"Failed to find the conanautotoolstoolchain.<sys-ext> script (script candidates: {autotools_toolchain_files})"
+
+        target_file = autotools_toolchain_files[0]
+
+        # Regex-remove machine flags from the script
+        with open(target_file, 'r') as f:
+            content = f.read()
+        for flag in flags_patterns:
+            content = re.sub(flag, '', content)
+        with open(target_file, 'w') as f:
+            f.write(content)
 
 # ================================================================================================================================== #
