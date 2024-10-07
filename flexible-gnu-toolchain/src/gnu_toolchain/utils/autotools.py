@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Monday, 7th October 2024 4:02:25 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 9:34:50 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -67,6 +67,13 @@ class AutotoolsPackage:
     
     # ------------------------------------------------------------------ #
 
+    msys_dlls = [
+        'msys-2.0.dll',
+        'msys-gcc_s-seh-1.dll',
+    ]
+
+    # ------------------------------------------------------------------ #
+
     @staticmethod
     def make_dirs(
         conanfile,
@@ -82,7 +89,7 @@ class AutotoolsPackage:
         setattr(result, 'prefix',    pathlib.Path(conanfile.build_folder) / result.prefix)
         setattr(result, 'offprefix', pathlib.Path(conanfile.build_folder) / result.offprefix)
         # Extra paths for convenience
-        setattr(result, 'doc',         result.prefix / "share" / "doc" / f"gcc-{target}")
+        setattr(result, 'doc',       pathlib.Path("share") / "doc" / f"gcc-{target}")
 
         return result
 
@@ -186,6 +193,8 @@ class AutotoolsPackage:
             # Create the install tag
             self._make_install_tag()
 
+        self.conanfile.output.success(f"'{self.description.name}' has been successfully built and installed.")
+
         return True
     
     # ------------------------------------------------------------------ #
@@ -203,6 +212,7 @@ class AutotoolsPackage:
 
         match conanfile.settings.os:
             case 'Linux': system = 'linux-gnu'
+            case 'Windows': system = 'pc-msys'
             case _:
                 raise ValueError(f"Unsupported OS: '{conanfile.settings.os}'")
 
@@ -220,20 +230,34 @@ class AutotoolsPackage:
                 path.mkdir(parents = True, exist_ok = True)
 
     def _get_common_config(self):
-        return [
 
-            f"--prefix={self.dirs.prefix}"
-                if not self._is_off_build else 
-            f"--prefix={self.dirs.offprefix}",
+        # Get the prefix
+        if self._is_off_build:
+            prefix = self.dirs.offprefix
+        else:
+            prefix = self.dirs.prefix
+        # Compute doc directory
+        doc_dir = prefix / self.dirs.doc
+
+        # Compile the common configuration
+        return [
 
             f"--build={self._get_host_triplet(self.conanfile)}",
             f"--host={self._get_host_triplet(self.conanfile)}",
             f"--target={self.target}",
 
-            f"--infodir={self.dirs.doc}/info",
-            f"--mandir={self.dirs.doc}/man",
-            f"--htmldir={self.dirs.doc}/html",
-            f"--pdfdir={self.dirs.doc}/pdf",
+            f"--prefix={prefix.as_posix()}",
+
+            f"--bindir={prefix.as_posix()}/bin",
+            f"--sbindir={prefix.as_posix()}/bin",
+            f"--libdir={prefix.as_posix()}/lib",
+            f"--includedir={prefix.as_posix()}/include",
+            f"--oldincludedir={prefix.as_posix()}/include",
+
+            f"--infodir={doc_dir.as_posix()}/info",
+            f"--mandir={doc_dir.as_posix()}/man",
+            f"--htmldir={doc_dir.as_posix()}/html",
+            f"--pdfdir={doc_dir.as_posix()}/pdf",
             
         ]
     
@@ -262,27 +286,12 @@ class AutotoolsPackage:
             shutil.rmtree(self.dirs.build.as_posix(), ignore_errors = True)
             self.dirs.build.mkdir(parents = True, exist_ok = True)
 
-    def _remove_default_prefix(self,
-        configure_args
-    ):
-
-        """The standard conan.tools.gnu.Autotools helper a;ways provides the --prefix option
-        which by default is set to '/'. This is unfortunate as the GNU toolchain is kind of
-        picky about the prefix option. To build succesfully some components (e.g. full GCC),
-        mixing the --prefix configuration and DESTDIR installation option does not work
-        (e.g. libc++ is not build with system includes properly specified. Thus we need to hack
-        the hellper and remove the --prefix option."""
-
-        return re.sub(r'--prefix=[^ ]* ', '', configure_args)
-
     def _configure_project(self,
         autotools : Autotools,
     ):
         # Get the configuration
         config = self.description.get_config()
 
-        # Remove standard prefix from the autotools helper
-        autotools._configure_args = self._remove_default_prefix(autotools._configure_args)
         # Extend the config with standard options
         config += self._get_common_config()
 
@@ -376,6 +385,13 @@ class AutotoolsPackage:
                     src     = self.dirs.build,
                     dst     = self.dirs.prefix / dst,
                 )
+
+            # For Windows, install msys2 runtime in the /lib directory
+            if self.conanfile.settings.os == 'Windows':
+                msys_bin = pathlib.Path(self.conanfile.dependencies.build['msys2'].package_folder) / 'bin/msys64/usr/bin'
+                for file in self.msys_dlls:
+                    shutil.copy(msys_bin / file, self.dirs.prefix / 'bin' / file)
+                    assert (self.dirs.prefix / 'bin' / file).exists()
 
     def _cleanup_project(self):
         

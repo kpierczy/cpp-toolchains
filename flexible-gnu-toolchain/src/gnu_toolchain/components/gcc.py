@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Monday, 7th October 2024 6:04:29 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 9:58:27 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -59,25 +59,30 @@ class Gcc(AutotoolsPackage):
             
             f"--with-pkgversion={self.pkg_version}",
 
-            f"--with-gmp={self.conanfile.dependencies["gmp"].package_folder}",
-            f"--with-mpfr={self.conanfile.dependencies["mpfr"].package_folder}",
-            f"--with-mpc={self.conanfile.dependencies["mpc"].package_folder}",
-            f"--with-isl={self.conanfile.dependencies["isl"].package_folder}",
-            f"--with-libelf={self.conanfile.dependencies["elfutils"].package_folder}",
+            f"--with-gmp={pathlib.Path(self.conanfile.dependencies['gmp'].package_folder).as_posix()}",
+            f"--with-mpfr={pathlib.Path(self.conanfile.dependencies['mpfr'].package_folder).as_posix()}",
+            f"--with-mpc={pathlib.Path(self.conanfile.dependencies['mpc'].package_folder).as_posix()}",
+            f"--with-isl={pathlib.Path(self.conanfile.dependencies['isl'].package_folder).as_posix()}",
             
-            f"--libexecdir={self.dirs.prefix}/lib",
+            f"--libexecdir={self.dirs.prefix.as_posix()}/lib",
             f"--with-python-dir=share/gcc-{self.target}",
             
         ]
 
+        # Add non-Windows specific options
+        if self.conanfile.settings.os != 'Windows':
+            self.description.config += [
+                f"--with-libelf={pathlib.Path(self.conanfile.dependencies['elfutils'].package_folder).as_posix()}",
+            ]
+
         # Add options depending on whether we build in-tree or out-of-tree
         if self.description.target_files is None:
             self.description.config += [
-                f"--with-sysroot={self.dirs.prefix}/{self.target}",
+                f"--with-sysroot={self.dirs.prefix.as_posix()}/{self.target}",
             ]
         else:
             self.description.config += [
-                f"--with-sysroot={self.dirs.offprefix}/{self.target}",
+                f"--with-sysroot={self.dirs.offprefix.as_posix()}/{self.target}",
             ]
 
         # Pick targets to be built
@@ -87,11 +92,16 @@ class Gcc(AutotoolsPackage):
         }
 
         # Create symbolic link to the <install_dir> from <install_dir>/<target>/usr
-        install_dir = self.dirs.prefix
-        usr_dir = install_dir / self.target / 'usr'
+        usr_dir = self.dirs.prefix / self.target / 'usr'
         if usr_dir.exists():
             usr_dir.unlink()
-        usr_dir.symlink_to(install_dir)
+        try:
+            usr_dir.symlink_to(self.dirs.prefix)
+        except Exception as e:
+            self.conanfile.output.error(
+                f"Failed to create symbolic link to the <install_dir> from <install_dir>/<target>/usr ({e}). " + 
+                f"If you are on Windows, you may need to enable Developer Mode in the Windows Settings. for symlink creation to work.")
+            raise
 
         # Build the project
         super().build(

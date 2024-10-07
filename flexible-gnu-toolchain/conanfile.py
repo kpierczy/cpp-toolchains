@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Wednesday, 2nd October 2024 1:07:46 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 8:58:04 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -19,8 +19,8 @@ sys.path.append(str(pathlib.Path(__file__).parent / "src"))
 
 from sys import version_info
 
-# Require Python version >= 3.12
-assert version_info >= (3, 12), "Python 3.12 or newer is required"
+# Require Python version >= 3.11
+assert version_info >= (3, 11), "Python 3.11 or newer is required"
 
 # Require Conan version >= 2.0.0
 required_conan_version = '>=2.0.0'
@@ -83,6 +83,16 @@ class GnuToolchainConan(ConanFile):
     # ---------------------------------------------------------------------------- #
 
     @property
+    def win_bash(self):
+        return (self.settings.os == "Windows") and (not self.options.prebuilt)
+
+    @win_bash.setter
+    def win_bash(self, value):
+        pass
+    
+    # ---------------------------------------------------------------------------- #
+
+    @property
     def _impl(self):
         if self.options.prebuilt:
             return PrebuiltDriver(self)
@@ -94,6 +104,9 @@ class GnuToolchainConan(ConanFile):
     def configure(self):
         self._impl.configure()
 
+    def validate(self):
+        self._impl.validate()
+        
     def requirements(self):
         self._impl.requirements()
 

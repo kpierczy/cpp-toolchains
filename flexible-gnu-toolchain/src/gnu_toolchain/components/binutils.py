@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Monday, 7th October 2024 1:20:34 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 7:22:08 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -23,7 +23,7 @@ class Binutils(AutotoolsPackage):
         # Extend the config
         self.description.config += [
             f"--with-pkgversion={self.pkg_version}",
-            f"--with-sysroot={self.dirs.prefix}/{self.target}" 
+            f"--with-sysroot={self.dirs.prefix.as_posix()}/{self.target}" 
         ]
         
         # Build the project

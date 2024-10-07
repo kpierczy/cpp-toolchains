@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Monday, 7th October 2024 1:18:40 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 10:15:09 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -12,6 +12,7 @@
 # ============================================================= Imports ============================================================ #
 
 # System imports
+import pathlib
 from copy import deepcopy
 # Private imports
 from gnu_toolchain.utils.autotools import AutotoolsPackage
@@ -25,8 +26,8 @@ class Gdb(AutotoolsPackage):
         # Extend the config with the GDB specific options
         self.description.config += [
             f"--with-libexpat",
-            f"--with-libexpat-prefix={self.conanfile.dependencies["expat"].package_folder}",
-            f"--with-system-gdbinit={self.dirs.prefix}/{self._get_host_triplet(self.conanfile)}/{self.target}/lib/gdbinit",
+            f"--with-libexpat-prefix={pathlib.Path(self.conanfile.dependencies['expat'].package_folder).as_posix()}",
+            f"--with-system-gdbinit={self.dirs.prefix.as_posix()}/{self._get_host_triplet(self.conanfile)}/{self.target}/lib/gdbinit",
         ]
 
         # Cache original description

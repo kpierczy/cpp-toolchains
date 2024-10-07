@@ -1,0 +1,29 @@
+# ====================================================================================================================================
+# @file       windows
+# @author     Krzysztof Pierczyk (you@you.you)
+# @maintainer Krzysztof Pierczyk (you@you.you)
+# @date       Monday, 7th October 2024 5:41:54 pm
+# @modified   Monday, 7th October 2024 10:13:38 pm by Krzysztof Pierczyk (you@you.you)
+# @brief      Host profile dedicated for building the package on Windows. use it with `--profile/--profile:host` option.
+# 
+# 
+# @copyright Your Company © 2024
+# ====================================================================================================================================
+
+[settings]
+arch=x86_64
+build_type=Release
+compiler=gcc
+compiler.cppstd=20
+compiler.libcxx=libstdc++
+compiler.version=13.3
+compiler.exception=seh
+compiler.threads=posix
+os=Windows
+
+[tool_requires]
+cmake/[>=3.21.3]
+msys2/cci.latest
+
+[conf]
+tools.cmake.cmaketoolchain:generator=MSYS Makefiles

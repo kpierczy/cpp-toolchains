@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Monday, 7th October 2024 4:06:44 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 10:00:54 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -13,7 +13,6 @@
 
 # Standard imports
 import pathlib
-import shutil
 import glob
 import re
 from importlib.machinery import SourceFileLoader
@@ -97,6 +96,15 @@ class FromSourceDriver():
         # Force C++11 (see GCC prerequisites)
         self.conanfile.settings.compiler.cppstd = 11
 
+    def validate(self):
+
+        # On Windows only GCC is supported (MinGW)
+        if self.conanfile.settings.os == 'Windows':
+            if self.conanfile.settings.compiler != 'gcc':
+                raise ValueError(f"On Windows only GCC (MinGW) is supported as a host compiler (current compiler: {self.conanfile.settings.compiler})")
+            if 'msys2' not in self.conanfile.dependencies.build:
+                raise ValueError(f"On Windows MSYS2 is required to build the toolchain ({self.conanfile.dependencies.build})")
+
     def requirements(self):
 
         def requires_dep(dep):
@@ -114,8 +122,10 @@ class FromSourceDriver():
         requires_dep('mpfr')
         requires_dep('mpc')
         requires_dep('isl')
-        requires_dep('elfutils')
         requires_dep('expat')
+        # Specify non-Windows specific dependencies
+        if self.conanfile.settings.os != 'Windows':
+            requires_dep('elfutils')
 
     def layout(self):
         basic_layout(self.conanfile, src_folder = "src")
