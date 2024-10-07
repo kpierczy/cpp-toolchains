@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Wednesday, 2nd October 2024 12:00:01 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 3:40:29 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -64,6 +64,7 @@ class Binutils(Common, BinutilsDescription):
         "--disable-sim",
         "--disable-gdb",
         "--enable-interwork",
+        "--enable-initfini-array",
         "--enable-plugins",
     ]
 
@@ -88,10 +89,6 @@ class GccCommon(Common, GccDescription):
     config = [
 
         # Common config
-        "--disable-libgomp",
-        "--disable-libmudflap",
-        "--disable-libquadmath",
-        "--disable-libssp",
         "--disable-nls",
         "--disable-shared",
         "--disable-threads",
@@ -99,9 +96,6 @@ class GccCommon(Common, GccDescription):
         "--with-gnu-as",
         "--with-gnu-ld",
         "--enable-checking=release",
-            
-        # Lib static libraries to the compiler
-        "--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm",
 
         # ---------------------------------------------------------------------------
         # @brief Resulting toolchain will be compiled with multilib support (e.g.
@@ -119,6 +113,42 @@ class GccCommon(Common, GccDescription):
         
     ]
 
+class NewlibCommon(Common, NewlibDescription):
+
+    config = [
+        "--enable-newlib-reent-check-verify",
+        "--enable-newlib-retargetable-locking",
+        "--disable-newlib-supplied-syscalls",
+        "--disable-nls",
+    ]
+
+    cflags_for_target = [
+        "-ffunction-sections",
+        "-fdata-sections",
+    ]
+
+    @staticmethod
+    def make_env(cflags_for_target):
+        return {
+
+            "_" : {
+
+                "CFLAGS_FOR_TARGET" : ' '.join(cflags_for_target),
+
+            },
+
+            'Debug' : {
+
+                "CFLAGS_FOR_TARGET" : ' '.join(
+                    cflags_for_target + [
+                        "-g"
+                    ]
+                )
+                
+            }
+
+        }
+
 class GccBase(GccCommon):
 
     name = 'gcc_base'
@@ -135,6 +165,14 @@ class GccBase(GccCommon):
         "--with-newlib",        # <---- # For great explenation of these two options 
         "--without-headers",    # <---- # @see https://www.ryanstan.com/withoutHeaders.html
                                         # -----------------------------------------------------
+
+        # Speed up the build
+        "--disable-libatomic",
+        "--disable-libsanitizer",
+        "--disable-libmudflap",
+        "--disable-libquadmath",
+        "--disable-libgomp",
+        "--disable-libssp",
         
     ]
 
@@ -191,43 +229,19 @@ class GccFinal(GccCommon):
 
     ]
 
-    class Libc(Common, NewlibDescription):
+    class Libc(NewlibCommon):
 
-        config = [
+        config = NewlibCommon.config + [
             "--enable-newlib-io-long-long",
             "--enable-newlib-io-c99-formats",
-            "--enable-newlib-reent-check-verify",
             "--enable-newlib-register-fini",
-            "--enable-newlib-retargetable-locking",
-            "--disable-newlib-supplied-syscalls",
-            "--disable-nls",
         ]
 
-        cflags_for_target = [
-            "-ffunction-sections",
-            "-fdata-sections",
-            "-O2",    
+        cflags_for_target = NewlibCommon.cflags_for_target + [
+            "-O2",
         ]
 
-        env = {
-
-            "_" : {
-
-                "CFLAGS_FOR_TARGET" : ' '.join(cflags_for_target),
-
-            },
-
-            'Debug' : {
-
-                "CFLAGS_FOR_TARGET" : ' '.join(
-                    cflags_for_target + [
-                        "-g"
-                    ]
-                )
-                
-            }
-
-        }
+        env = NewlibCommon.make_env(cflags_for_target = cflags_for_target)
 
 class GccFinalNano(GccCommon):
 
@@ -328,48 +342,24 @@ class GccFinalNano(GccCommon):
 
         # Skip doc (built in the Newlib stage)
         without_doc = True
-        
-        config = [
-            "--disable-newlib-supplied-syscalls",
-            "--enable-newlib-reent-check-verify",
+
+        config = NewlibCommon.config + [
             "--enable-newlib-reent-small",
-            "--enable-newlib-retargetable-locking",
-            "--disable-newlib-fvwrite-in-streamio",
-            "--disable-newlib-fseek-optimization",
-            "--disable-newlib-wide-orient",
             "--enable-newlib-nano-malloc",
-            "--disable-newlib-unbuf-stream-opt",
             "--enable-lite-exit",
             "--enable-newlib-global-atexit",
             "--enable-newlib-nano-formatted-io",
-            "--disable-nls",
+            "--disable-newlib-fvwrite-in-streamio",
+            "--disable-newlib-fseek-optimization",
+            "--disable-newlib-wide-orient",
+            "--disable-newlib-unbuf-stream-opt",
         ]
 
-        cflags_for_target = [
-            "-ffunction-sections",
-            "-fdata-sections",
+        cflags_for_target = NewlibCommon.cflags_for_target + [
             "-Os",    
         ]
 
-        env = {
-
-            "_" : {
-
-                "CFLAGS_FOR_TARGET" : ' '.join(cflags_for_target),
-
-            },
-
-            'Debug' : {
-
-                "CFLAGS_FOR_TARGET" : ' '.join(
-                    cflags_for_target + [
-                        "-g"
-                    ]
-                )
-                
-            }
-
-        }
+        env = NewlibCommon.make_env(cflags_for_target = cflags_for_target)
 
         # We trigger the off-install-tree build but do not copy results, these will be copied by the 'GccNewlibNano' build
         target_files = { }
@@ -400,12 +390,10 @@ class Gdb(Common, GdbDescription):
     config = [
 
         "--disable-nls",
-        "--disable-sim",
         "--disable-gas",
         "--disable-binutils",
         "--disable-ld",
         "--disable-gprof",
-        "--with-lzma=no",
         
         f"--with-gdb-datadir={target}/share/gdb",
         
