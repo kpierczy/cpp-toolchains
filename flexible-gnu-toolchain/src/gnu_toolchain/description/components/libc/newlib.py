@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Wednesday, 2nd October 2024 6:29:53 am
-# @modified   Wednesday, 2nd October 2024 12:08:38 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 4:04:37 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -19,6 +19,8 @@ from gnu_toolchain.components.libc.newlib import Newlib
 
 class NewlibDescription(CommonDescription):
     
+    # Name of the component (used internally by the build chain)
+    component_name = 'newlib'
     # Default name for the Newlib build
     name = 'newlib'
     # Default dependency name

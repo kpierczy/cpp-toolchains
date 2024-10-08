@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Tuesday, 8th October 2024 10:26:10 am by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 4:05:15 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -16,7 +16,6 @@ import pathlib
 import shutil
 import os
 import contextlib
-import re
 # Conan imports
 from conan.tools.files import copy
 from conan.tools.gnu import Autotools
@@ -290,11 +289,17 @@ class AutotoolsPackage:
     def _make_install_tag(self):
         (self.dirs.build / '.installed').touch()
     
-    def _clone_sources(self
-                       ):
+    def _clone_sources(self):
+        
         # Clone the sources into <build>/src/binutils
         with contextlib.chdir(self.dirs.download):
-            self.dirs.src = get(self.conanfile, self.description.url, destination = self.dirs.src.as_posix())
+            self.dirs.src = get(
+                conanfile      = self.conanfile,
+                url            = self.description.url,
+                component_name = self.description.component_name,
+                version        = self.description.version,
+                destination    = self.dirs.src.as_posix(),
+            )
 
     def _clean_build_dir(self):
 

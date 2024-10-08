@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Tuesday, 8th October 2024 12:25:53 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 3:11:18 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -77,6 +77,7 @@ class GnuToolchainConan(ConanFile):
 
     exports = [
         "data/*.py",
+        "patches/*",
         "src/**/*.py",
         "license",
     ]

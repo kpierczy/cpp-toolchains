@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Wednesday, 2nd October 2024 7:36:31 am by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 6:41:48 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -13,7 +13,10 @@
 
 # System imports
 import pathlib
+import contextlib
 import os
+# External imports
+import patch_ng
 # Conan imports
 from conan.errors import ConanException
 from conan.tools.files import download, ftp_download, unzip
@@ -23,6 +26,8 @@ from conan.tools.files import download, ftp_download, unzip
 def get(
     conanfile,
     url,
+    component_name,
+    version,
     destination,
     **kwargs,
 ):
@@ -63,6 +68,27 @@ def get(
         tag_file.touch()
     else:
         conanfile.output.info(f"'{filename}' already unzipped. Skipping...")
+
+    # Compute path to the patches dir of the given component
+    patches_dir = pathlib.Path(conanfile.recipe_folder) / \
+        'patches' /                                       \
+            str(conanfile.settings.os).lower() /          \
+                component_name /                          \
+                    version
+    
+    # If set of patchfiles for the 
+    if not patches_dir.exists():
+        conanfile.output.info(f"No patches found in '{patches_dir.as_posix()}'. Skipping...")
+    else:
+        conanfile.output.info(f"Patches directory for {component_name}/{version} found. Looking for patches...")
+        with contextlib.chdir(src_dir):
+            for patch in patches_dir.iterdir():
+                conanfile.output.info(f"Applying patch '{(patches_dir / patch).as_posix()}'...")
+                patchset = patch_ng.fromfile(patch.as_posix())
+                if not patchset:
+                    raise ConanException(f"Failed to parse patch '{patch.name}'")
+                if not patchset.apply():
+                    raise ConanException(f"Failed to apply patch '{patch.name}'")
 
     return src_dir
 
