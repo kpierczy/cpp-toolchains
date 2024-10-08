@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Monday, 7th October 2024 8:58:04 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 12:25:53 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -48,7 +48,8 @@ class GnuToolchainConan(ConanFile):
 
     # ------------------------------------------------------------------ #
     
-    settings = [ 'os', 'compiler', 'build_type', 'arch' ]
+    package_type  = 'application'
+    settings      = [ 'os', 'compiler', 'build_type', 'arch' ]
 
     # ------------------------------------------------------------------ #
 
