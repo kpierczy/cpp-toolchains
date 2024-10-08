@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Tuesday, 8th October 2024 12:24:13 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 6:40:37 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -91,8 +91,11 @@ class FromSourceDriver():
 
     def configure(self):
 
-        # Force C++11 (see GCC prerequisites)
-        self.conanfile.settings.compiler.cppstd = 11
+        # Force C++11 (see GCC prerequisites, @note MSYS/MinGW GCC requires GNU extensions to make __POSIX_VISIBLE defined)
+        if self.conanfile.settings.os == 'Windows':
+            self.conanfile.settings.compiler.cppstd = 'gnu11'
+        else:
+            self.conanfile.settings.compiler.cppstd = 11
 
     def validate(self):
 
