@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Monday, 7th October 2024 9:34:50 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Tuesday, 8th October 2024 10:26:10 am by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -118,12 +118,12 @@ class AutotoolsPackage:
         # Create the autotools driver
         autotools = Autotools(self.conanfile)
 
-        # Check if the project has been already built
-        if self._has_build_tag():
-            
-            self.conanfile.output.info(f"'{self.description.name}' has been already built. Skipping...")
+        # Check if the project has been already configured
+        if self._has_configure_tag():
 
-        # Else, configure and build the project
+            self.conanfile.output.info(f"'{self.description.name}' has been already configured. Skipping...")
+
+        # Else, configure the project
         else:
 
             self.conanfile.output.success(f"Cleaning '{self.description.name}' build directory...")
@@ -141,6 +141,17 @@ class AutotoolsPackage:
             except Exception as e:
                 self.conanfile.output.error(f"Failed to configure '{self.description.name}' ({e})")
                 raise
+
+            # Create the configure tag
+            self._make_configure_tag()
+
+        # Check if the project has been already built
+        if self._has_build_tag():
+            
+            self.conanfile.output.info(f"'{self.description.name}' has been already built. Skipping...")
+
+        # Else, configure and build the project
+        else:
 
             self.conanfile.output.success(f"Building '{self.description.name}'...")
 
@@ -260,6 +271,12 @@ class AutotoolsPackage:
             f"--pdfdir={doc_dir.as_posix()}/pdf",
             
         ]
+    
+    def _has_configure_tag(self):
+        return (self.dirs.build / '.configured').exists()
+
+    def _make_configure_tag(self):
+        (self.dirs.build / '.configured').touch()
     
     def _has_build_tag(self):
         return (self.dirs.build / '.built').exists()
