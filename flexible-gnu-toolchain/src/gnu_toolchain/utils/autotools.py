@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Thursday, 10th October 2024 2:50:48 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 5:15:07 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -490,7 +490,7 @@ class AutotoolsPackage:
     def _cleanup_project(self):
 
         def process_cleanup():
-            for path in self.description.cleanup:
+            for path in self.description.cleanup_files:
                 path = self.dirs.prefix / path
                 try:
                     if path.is_file():
@@ -501,7 +501,7 @@ class AutotoolsPackage:
                     self.conanfile.output.warning(f"Failed to remove '{path.as_posix()}' ({e})")
 
         # Cleanup the installation
-        if self.description.cleanup:
+        if self.description.cleanup_files:
             return self._run_step('cleanup', process_cleanup)
 
         return False

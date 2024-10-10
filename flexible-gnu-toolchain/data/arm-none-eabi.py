@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Monday, 7th October 2024 3:40:29 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 5:10:04 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -78,7 +78,7 @@ class Binutils(Common, BinutilsDescription):
         pathlib.Path('*') : '',
     }
 
-    cleanup = [
+    cleanup_files = [
         pathlib.Path('lib'),
     ]
 
@@ -176,7 +176,7 @@ class GccBase(GccCommon):
         
     ]
 
-    cleanup = [
+    cleanup_files = [
 
         pathlib.Path('bin') / f'{target}-gccbug',
         pathlib.Path('lib') / 'libiberty.a',
@@ -218,7 +218,7 @@ class GccFinal(GccCommon):
 
     }
 
-    cleanup = [
+    cleanup_files = [
 
         pathlib.Path('bin') / f'{target}-gccbug',
         pathlib.Path('lib') / 'libiberty.a',
