@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Thursday, 10th October 2024 4:17:40 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 5:09:35 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -94,16 +94,19 @@ class AutotoolsPackage:
 
     def build(self,
         
-        target        : str = None,
+        target        : str         = None,
         build_args    : list | None = None,
-        doc_targets   : list = [],
-        extra_targets : list = [],
+        doc_targets   : list        = [],
+        extra_targets : list        = [],
 
-        install_target        : str = 'install',
+        install_target        : str         = 'install',
         install_args          : list | None = None,
-        doc_install_targets   : list = [],
-        extra_install_targets : list = [],
-        extra_install_files   : dict = {},
+        doc_install_targets   : list        = [],
+        extra_install_targets : list        = [],
+        extra_install_files   : dict        = {},
+
+        clean_target     : str  = 'clean',
+        clean_on_rebuild : bool = False,
         
     ):
         """Downloads, configures and builds the autotools project"""
@@ -120,9 +123,11 @@ class AutotoolsPackage:
         self._clone_sources()
 
         # Check if the project has been already configured
+        configured = False
         if self._configure_project(
             autotools
         ):
+            configured = True
             modified = True
         
         # Check if the project has been already built
@@ -132,6 +137,8 @@ class AutotoolsPackage:
             build_args = build_args,
             doc_targets = doc_targets,
             extra_targets = extra_targets,
+            clean_target = clean_target,
+            clean_build = (not configured) and clean_on_rebuild,
         ):
             modified = True
 
@@ -217,46 +224,60 @@ class AutotoolsPackage:
         return {
             'configure': {
                 'tag'                : self.dirs.build / '.configured', 
+                'infinitive'         : 'configure',
                 'present_continuous' : 'configuring',
                 'present_perfect'    : 'configured',
             },
+            'build-cleaning': {
+                'infinitive'         : 'clean build',
+                'present_continuous' : 'cleaning build',
+                'present_perfect'    : 'build cleaned',
+            },
             'build': {
                 'tag'                : self.dirs.build / '.built',
+                'infinitive'         : 'build',
                 'present_continuous' : 'building',
                 'present_perfect'    : 'built',
             },
             'extra-build': {
                 'tag'                : self.dirs.build / '.extra-built',
+                'infinitive'         : 'build extras',
                 'present_continuous' : 'building extras',
                 'present_perfect'    : 'extras-built',
             },
             'doc-build': {
                 'tag'                : self.dirs.build / '.doc-built',
+                'infinitive'         : 'build doc',
                 'present_continuous' : 'building doc',
                 'present_perfect'    : 'doc-built',
             },
             'install': {
                 'tag'                : self.dirs.build / '.installed',
+                'infinitive'         : 'install',
                 'present_continuous' : 'installing',
                 'present_perfect'    : 'installed',
             },
             'extra-install': {
                 'tag'                : self.dirs.build / '.extra-installed',
+                'infinitive'         : 'install extras',
                 'present_continuous' : 'installing extras',
                 'present_perfect'    : 'extras-installed',
             },
             'doc-install': {
                 'tag'                : self.dirs.build / '.doc-installed',
+                'infinitive'         : 'install doc',
                 'present_continuous' : 'installing doc',
                 'present_perfect'    : 'doc-installed',
             },
             'manual-install': {
                 'tag'                : self.dirs.build / '.manual-installed',
+                'infinitive'         : 'install manually',
                 'present_continuous' : 'installing manually',
                 'present_perfect'    : 'manually-installed',
             },
             'cleanup': {
                 'tag'                : self.dirs.build / '.cleaned',
+                'infinitive'         : 'cleanup',
                 'present_continuous' : 'cleaning up',
                 'present_perfect'    : 'cleaned',
             },
@@ -289,11 +310,28 @@ class AutotoolsPackage:
 
         return _StepTag(self, step)
     
+    def _to_infinitive(self, step):
+        return self._steps[step]['infinitive']
+    
     def _to_present_perfect(self, step):
         return self._steps[step]['present_perfect']
     
     def _to_present_continuous(self, step):
         return self._steps[step]['present_continuous']
+    
+    def _process_step(self,
+        process,
+        step,
+    ):
+        self.conanfile.output.success(f"{self._to_present_continuous(step).capitalize()} '{self.description.name}'...")
+
+        try:
+            process()
+        except Exception as e:
+            self.conanfile.output.error(f"Failed to {self._to_infinitive(step)} '{self.description.name}' ({e})")
+            raise
+
+        self.conanfile.output.success(f"'{self.description.name}' has been {self._to_present_perfect(step)} successfully.")
 
     def _run_step(self,
         step,
@@ -304,16 +342,11 @@ class AutotoolsPackage:
             if step_guard.exists():
                 self.conanfile.output.info(f"'{self.description.name}' has been already {self._to_present_perfect(step)}. Skipping...")
                 return False
-
-            self.conanfile.output.success(f"{self._to_present_continuous(step).capitalize()} '{self.description.name}'...")
-
-            try:
-                process()
-            except Exception as e:
-                self.conanfile.output.error(f"Failed to {step} '{self.description.name}' ({e})")
-                raise
-
-            self.conanfile.output.success(f"'{self.description.name}' has been {self._to_present_perfect(step)} successfully.")
+            
+            self._process_step(
+                process = process,
+                step    = step,
+            )
 
             return True
 
@@ -365,11 +398,13 @@ class AutotoolsPackage:
         return self._run_step('configure', process)
     
     def _build_project(self,
-        autotools : Autotools,
-        build_target  : str | None = None,
-        build_args    : list | None = None,
-        doc_targets   : list = [ ],
-        extra_targets : list = [],
+        autotools     : Autotools,
+        build_target  : str,
+        build_args    : list,
+        doc_targets   : list,
+        extra_targets : list,
+        clean_target  : str,
+        clean_build   : bool,
     ):      
         modified = False
 
@@ -388,7 +423,19 @@ class AutotoolsPackage:
             def make_target(target):
                 autotools.make(target = target, args = build_args)
 
+            def process_clean_build():
+                make_target(clean_target)
+
             def process_build():
+
+                # Clean the build directory just in case
+                if clean_build:
+                    self._process_step(
+                        process = process_clean_build,
+                        step    = 'build-cleaning',
+                    )
+                
+                # Build the project
                 make_target(build_target)
 
             def process_build_extras():
@@ -415,12 +462,12 @@ class AutotoolsPackage:
         return modified
     
     def _install_project(self,
-        autotools : Autotools,
-        install_target        : str = 'install',
-        install_args          : list | None = None,
-        doc_install_targets   : list = [],
-        extra_install_targets : list = [],
-        extra_install_files   : dict = {},
+        autotools             : Autotools,
+        install_target        : str,
+        install_args          : list,
+        doc_install_targets   : list,
+        extra_install_targets : list,
+        extra_install_files   : dict,
     ):
         modified = False
 
