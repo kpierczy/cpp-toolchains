@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Thursday, 10th October 2024 1:29:05 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 2:50:48 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -117,57 +117,38 @@ class AutotoolsPackage:
         modified = False
 
         # Clone the sources into <build>/src/binutils
-        try:
-            self._clone_sources()
-        except Exception as e:
-            self.conanfile.output.error(f"Failed to clone sources of '{self.description.name}' ({e})")
-            raise
+        self._clone_sources()
 
         # Check if the project has been already configured
-        try:
-            if self._configure_project(
-                autotools
-            ):
-                modified = True
-        except Exception as e:
-            self.conanfile.output.error(f"Failed to configure '{self.description.name}' ({e})")
-            raise
+        if self._configure_project(
+            autotools
+        ):
+            modified = True
         
         # Check if the project has been already built
-        try:
-            if self._build_project(
-                autotools,
-                build_target = target,
-                build_args = build_args,
-                doc_targets = doc_targets,
-                extra_targets = extra_targets,
-            ):
-                modified = True
-        except Exception as e:
-            self.conanfile.output.error(f"Failed to build '{self.description.name}' ({e})")
-            raise
+        if self._build_project(
+            autotools,
+            build_target = target,
+            build_args = build_args,
+            doc_targets = doc_targets,
+            extra_targets = extra_targets,
+        ):
+            modified = True
 
         # Check if the project has been already installed
-        try:
-            if self._install_project(
-                autotools,
-                install_target = install_target,
-                install_args = install_args,
-                doc_install_targets = doc_install_targets,
-                extra_install_targets = extra_install_targets,
-                extra_install_files = extra_install_files,
-            ):
-                modified = True
-        except Exception as e:
-            self.conanfile.output.error(f"Failed to install '{self.description.name}' ({e})")
-            raise
+        if self._install_project(
+            autotools,
+            install_target = install_target,
+            install_args = install_args,
+            doc_install_targets = doc_install_targets,
+            extra_install_targets = extra_install_targets,
+            extra_install_files = extra_install_files,
+        ):
+            modified = True
 
         # Cleanup the installation
-        try:
-            if self._cleanup_project():
-                modified = True
-        except Exception as e:
-            self.conanfile.output.warning(f"Failed to cleanup '{self.description.name}' installation ({e})")
+        if self._cleanup_project():
+            modified = True
 
         return modified
     
@@ -196,14 +177,8 @@ class AutotoolsPackage:
     def _is_off_build(self):
         return self.description.target_files is not None
 
-    def _make_dirs(self,
-        skip = [ 'src' ]
-    ):
-        for name, path in self.dirs.__dict__.items():
-            if (name not in skip) and (path.is_absolute()):
-                path.mkdir(parents = True, exist_ok = True)
-
-    def _get_common_config(self):
+    @property
+    def _common_config(self):
 
         # Get the prefix
         if self._is_off_build:
@@ -307,7 +282,7 @@ class AutotoolsPackage:
                 if etype is not None:
                     if self.exists():
                         self._autotools_package._steps[self._step]['tag'].unlink()
-                        raise value
+                    raise value
                         
                 # Otherwise, create the tag
                 self._autotools_package._steps[self._step]['tag'].touch()
@@ -332,23 +307,38 @@ class AutotoolsPackage:
 
             self.conanfile.output.success(f"{self._to_present_continuous(step).capitalize()} '{self.description.name}'...")
 
-            process()
+            try:
+                process()
+            except Exception as e:
+                self.output.error(f"Failed to {step} '{self.description.name}' ({e})")
+                raise
 
             self.conanfile.output.success(f"'{self.description.name}' has been {self._to_present_perfect(step)} successfully.")
 
             return True
+
+    def _make_dirs(self,
+        skip = [ 'src' ]
+    ):
+        for name, path in self.dirs.__dict__.items():
+            if (name not in skip) and (path.is_absolute()):
+                path.mkdir(parents = True, exist_ok = True)
     
     def _clone_sources(self):
         
         # Clone the sources into <build>/src/binutils
         with contextlib.chdir(self.dirs.download):
-            self.dirs.src = get(
-                conanfile      = self.conanfile,
-                url            = self.description.url,
-                component_name = self.description.component_name,
-                version        = self.description.version,
-                destination    = self.dirs.src.as_posix(),
-            )
+            try:
+                self.dirs.src = get(
+                    conanfile      = self.conanfile,
+                    url            = self.description.url,
+                    component_name = self.description.component_name,
+                    version        = self.description.version,
+                    destination    = self.dirs.src.as_posix(),
+                )
+            except Exception as e:
+                self.conanfile.output.error(f"Failed to clone sources of '{self.description.name}' ({e})")
+                raise
 
     def _configure_project(self,
         autotools : Autotools,
@@ -363,7 +353,7 @@ class AutotoolsPackage:
             # Get the configuration
             config = self.description.get_config()
             # Extend the config with standard options
-            config += self._get_common_config()
+            config += self._common_config
 
             # Configure the project in the build directory
             with contextlib.chdir(self.dirs.build):
