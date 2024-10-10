@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Monday, 7th October 2024 8:58:21 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 2:53:43 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -37,6 +37,9 @@ class PrebuiltDriver():
     def configure(self):
         raise NotImplementedError("PrebuiltDriver.configure() is not implemented")
 
+    def system_requirements(self):
+        raise NotImplementedError("PrebuiltDriver.system_requirements() is not implemented")
+    
     def requirements(self):
         raise NotImplementedError("PrebuiltDriver.requirements() is not implemented")
 

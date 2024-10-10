@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Tuesday, 8th October 2024 6:40:37 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 2:54:51 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -18,6 +18,7 @@ from importlib.machinery import SourceFileLoader
 from conan.tools.layout import basic_layout
 from conan.tools.files import copy
 from conan.tools.gnu import AutotoolsToolchain
+from conan.tools.system.package_manager import Apt
 # Package imports
 from gnu_toolchain.components import *
 from gnu_toolchain.utils.autotools import AutotoolsPackage
@@ -105,6 +106,13 @@ class FromSourceDriver():
                 raise ValueError(f"On Windows only GCC (MinGW) is supported as a host compiler (current compiler: {self.conanfile.settings.compiler})")
             if 'msys2' not in self.conanfile.dependencies.build:
                 raise ValueError(f"On Windows MSYS2 is required to build the toolchain ({self.conanfile.dependencies.build})")
+
+    def system_requirements(self):
+
+        if self.conanfile.settings.os == 'Linux':
+            Apt(self.conanfile).install([
+                "texinfo",
+            ], update=True, check=True)
 
     def requirements(self):
 

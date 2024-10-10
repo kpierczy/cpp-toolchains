@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Tuesday, 8th October 2024 3:11:18 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 2:53:52 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -108,6 +108,9 @@ class GnuToolchainConan(ConanFile):
 
     def validate(self):
         self._impl.validate()
+        
+    def system_requirements(self):
+        self._impl.system_requirements()
         
     def requirements(self):
         self._impl.requirements()
