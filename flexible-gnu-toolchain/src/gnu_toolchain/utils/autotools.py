@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Thursday, 10th October 2024 5:15:07 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 4:17:40 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -310,7 +310,7 @@ class AutotoolsPackage:
             try:
                 process()
             except Exception as e:
-                self.output.error(f"Failed to {step} '{self.description.name}' ({e})")
+                self.conanfile.output.error(f"Failed to {step} '{self.description.name}' ({e})")
                 raise
 
             self.conanfile.output.success(f"'{self.description.name}' has been {self._to_present_perfect(step)} successfully.")
