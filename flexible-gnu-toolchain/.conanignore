@@ -4,3 +4,4 @@ patches/*
 src/*
 conanfile.py
 license
+readme.md
