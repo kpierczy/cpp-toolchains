@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Monday, 7th October 2024 9:58:27 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 10:52:57 am by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -110,6 +110,8 @@ class Gcc(AutotoolsPackage):
                       
             doc_install_targets = [
                 'install-html install-pdf',
+            ] if self.conanfile.settings.os != 'Windows' else [
+                'install-html',
             ],
 
         )
