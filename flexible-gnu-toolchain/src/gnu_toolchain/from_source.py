@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Thursday, 10th October 2024 2:54:51 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Thursday, 10th October 2024 10:35:50 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -112,6 +112,7 @@ class FromSourceDriver():
         if self.conanfile.settings.os == 'Linux':
             Apt(self.conanfile).install([
                 "texinfo",
+                "texlive",
             ], update=True, check=True)
 
     def requirements(self):
