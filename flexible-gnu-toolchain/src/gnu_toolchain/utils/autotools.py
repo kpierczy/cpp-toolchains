@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Friday, 11th October 2024 10:04:34 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:18:55 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -302,6 +302,11 @@ class AutotoolsPackage:
                     self.conanfile.output.info(f"Removing '{self._steps[step]['tag'].as_posix()}' tag...")
                     self._steps[step]['tag'].unlink()
 
+    def _has_step_tag(self,
+        step
+    ):
+        return self._steps[step]['tag'].exists()
+
     def _with_step_tag(self, step):
         
         class _StepTag:
@@ -314,7 +319,7 @@ class AutotoolsPackage:
                 return self
 
             def exists(self):
-                return self._autotools_package._steps[self._step]['tag'].exists()
+                return self._autotools_package._has_step_tag(self._step)
 
             def __exit__(self, etype, value, traceback):
 

@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Friday, 11th October 2024 10:00:30 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:14:53 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -383,20 +383,42 @@ class GccFinalNano(GccCommon):
 
 # =============================================================== GDB ============================================================== #
 
-class Gdb(Common, GdbDescription):
+class GdbCommon(Common, GdbDescription):
             
     config = [
+
+        "--with-gnu-ld",
+        "--enable-plugins",
+        "--enable-tui",
 
         "--disable-nls",
         "--disable-gas",
         "--disable-binutils",
         "--disable-ld",
+        "--disable-gold",
         "--disable-gprof",
         
         f"--with-gdb-datadir={target}/share/gdb",
         
     ]
-            
+        
+class Gdb(GdbCommon):
+
+    name = 'gdb-no-python'
+    
+    config = GdbCommon.config + [
+        "--with-python=no",
+    ]
+        
+class GdbPython(GdbCommon):
+
+    name = 'gdb'
+    
+    config = GdbCommon.config + [
+        "--program-suffix=-py",
+        "--with-python=yes",
+    ]
+
 # ============================================================ Script ============================================================== #
 
 class Description(ToolchainDescription):
@@ -428,6 +450,9 @@ class Description(ToolchainDescription):
 
             # GDB
             Gdb(conanfile),
+            # GDB with Python integration (not supported on Windows currently, see https://github.com/ilg-deprecated/arm-none-eabi-gcc-build/issues/2)
+            *([ GdbPython(conanfile) ] if conanfile.settings.os != 'Windows' else [ ]),
+            
         ]
 
 # ================================================================================================================================== #

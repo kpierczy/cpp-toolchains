@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Monday, 7th October 2024 10:15:09 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:19:08 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -12,7 +12,9 @@
 # ============================================================= Imports ============================================================ #
 
 # System imports
+import sys
 import pathlib
+import os
 from copy import deepcopy
 # Private imports
 from gnu_toolchain.utils.autotools import AutotoolsPackage
@@ -25,65 +27,50 @@ class Gdb(AutotoolsPackage):
         
         # Extend the config with the GDB specific options
         self.description.config += [
-            f"--with-libexpat",
-            f"--with-libexpat-prefix={pathlib.Path(self.conanfile.dependencies['expat'].package_folder).as_posix()}",
-            f"--with-system-gdbinit={self.dirs.prefix.as_posix()}/{self._get_host_triplet(self.conanfile)}/{self.target}/lib/gdbinit",
-        ]
-
-        # Cache original description
-        original_name   = self.description.name
-        original_config = deepcopy(self.description.config)
-        # Prepare list of build arguments
-        build_args = {
-            'doc_install_targets' : [
-                'install-html install-pdf',
-            ]
-        }
-
-        # Build the project without Python integration
-        self._build_without_python_integration(
-            original_name,
-            original_config,
-            build_args,
-        )
-
-        # Build the project with Python integration
-        self._build_with_python_integration(
-            original_name,
-            original_config,
-            build_args,
-        )
-                
-    # ---------------------------------------------------------------------------- #
-
-    def _build_without_python_integration(self,
-        original_name,
-        original_config,
-        build_args,
-    ):
-        # Set config for the build variant without Python
-        self.description.name   = f'{original_name}-no-python'
-        self.description.config = original_config + [
-            "--with-python=no",
-        ]
-
-        # Build the project without Python integration
-        super().build(**build_args)
-
-    def _build_with_python_integration(self,
-        original_name,
-        original_config,
-        build_args,
-    ):
-        # Set config for the build variant without Python
-        self.description.name   = original_name
-        self.description.config = original_config + [
-            f"--with-python=yes",
+            
+            f"--with-pkgversion={self.pkg_version}",
             f"--program-prefix={self.target}-",
-            f"--program-suffix=-py",
+
+            f"--with-gmp={pathlib.Path(self.conanfile.dependencies['gmp'].package_folder).as_posix()}",
+            f"--with-mpfr={pathlib.Path(self.conanfile.dependencies['mpfr'].package_folder).as_posix()}",
+            f"--with-mpc={pathlib.Path(self.conanfile.dependencies['mpc'].package_folder).as_posix()}",
+            f"--with-isl={pathlib.Path(self.conanfile.dependencies['isl'].package_folder).as_posix()}",
+
+            f"--with-expat",
+            f"--with-libexpat-prefix={pathlib.Path(self.conanfile.dependencies['expat'].package_folder).as_posix()}",
+            f"--with-libgmp-prefix={pathlib.Path(self.conanfile.dependencies['gmp'].package_folder).as_posix()}",
+
+            f"--with-system-gdbinit={self.dirs.prefix.as_posix()}/{self._get_host_triplet(self.conanfile)}/{self.target}/lib/gdbinit",
+            
         ]
 
+        # Compile components to be disabled on current platform
+        disabled_modules = {
+            
+            'Windows' : [ 'sim', 'tui' ],
+
+        }.get(str(self.conanfile.settings.os), None)
+        
+        # Disable components
+        if disabled_modules and not self._has_step_tag('configure'):
+            self.conanfile.output.warning(f"Building GDB on {self.conanfile.settings.os}. The following components will be disabled:")
+            for module in disabled_modules:
+                self.conanfile.output.warning(f"  - {module}")
+                self.description.config += [ f"--disable-{module}" ]
+
+        # Extend the environment to let the GDB find the zlib
+        os.environ["CFLAGS"]  = f"{os.environ.get('CFLAGS', '')}  -I{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/include"
+        os.environ["LDFLAGS"] = f"{os.environ.get('LDFLAGS', '')} -L{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/lib"
+
         # Build the project with Python integration
-        super().build(**build_args)
+        super().build(
+            
+            doc_install_targets = [
+                'install-html install-pdf',
+            ] if self.conanfile.settings.os != 'Windows' else [
+                'install-pdf',
+            ],
+            
+        )
                                           
 # ================================================================================================================================== #
