@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Thursday, 10th October 2024 5:09:35 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Friday, 11th October 2024 10:04:34 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -17,10 +17,9 @@ import shutil
 import os
 import contextlib
 # Conan imports
-from conan.tools.files import copy
 from conan.tools.gnu import Autotools
 # Private imports
-from gnu_toolchain.utils.files import get
+from gnu_toolchain.utils.files import get, copy_with_rename
 
 # ========================================================== Helper types ========================================================== #
 
@@ -112,26 +111,24 @@ class AutotoolsPackage:
         """Downloads, configures and builds the autotools project"""
 
         # Compile dirs
-        self._make_dirs()
+        self._create_dirs()
 
         # Create the autotools driver
         autotools = Autotools(self.conanfile)
-        # Track if the project has been modified
-        modified = False
 
         # Clone the sources into <build>/src/binutils
         self._clone_sources()
 
         # Check if the project has been already configured
-        configured = False
-        if self._configure_project(
+        configured = self._configure_project(
             autotools
-        ):
-            configured = True
-            modified = True
+        )
         
+        # Remove build tags if the project has been configured
+        if configured:
+            self._remove_all_step_tags_from('build')
         # Check if the project has been already built
-        if self._build_project(
+        built = self._build_project(
             autotools,
             build_target = target,
             build_args = build_args,
@@ -139,25 +136,33 @@ class AutotoolsPackage:
             extra_targets = extra_targets,
             clean_target = clean_target,
             clean_build = (not configured) and clean_on_rebuild,
-        ):
-            modified = True
+        )
 
+        # Remove install tags if the project has been built
+        if built:
+            self._remove_all_step_tags_from('install')
         # Check if the project has been already installed
-        if self._install_project(
+        installed = self._install_project(
             autotools,
             install_target = install_target,
             install_args = install_args,
             doc_install_targets = doc_install_targets,
             extra_install_targets = extra_install_targets,
             extra_install_files = extra_install_files,
-        ):
-            modified = True
+        )
 
+        # Remove cleanup tags if the project has been installed
+        if installed:
+            self._remove_all_step_tags_from('cleanup')
         # Cleanup the installation
-        if self._cleanup_project():
-            modified = True
+        cleaned = self._cleanup_project()
 
-        return modified
+        return (
+            configured or
+            built or
+            installed or
+            cleaned
+        )
     
     # ------------------------------------------------------------------ #
 
@@ -226,62 +231,76 @@ class AutotoolsPackage:
                 'tag'                : self.dirs.build / '.configured', 
                 'infinitive'         : 'configure',
                 'present_continuous' : 'configuring',
-                'present_perfect'    : 'configured',
+                'present_perfect'    : 'has been configured',
             },
             'build-cleaning': {
                 'infinitive'         : 'clean build',
                 'present_continuous' : 'cleaning build',
-                'present_perfect'    : 'build cleaned',
+                'present_perfect'    : 'buil has been cleaned',
             },
             'build': {
                 'tag'                : self.dirs.build / '.built',
                 'infinitive'         : 'build',
                 'present_continuous' : 'building',
-                'present_perfect'    : 'built',
+                'present_perfect'    : 'has been built',
             },
             'extra-build': {
-                'tag'                : self.dirs.build / '.extra-built',
+                'tag'                : self.dirs.build / '.built-extra',
                 'infinitive'         : 'build extras',
                 'present_continuous' : 'building extras',
-                'present_perfect'    : 'extras-built',
+                'present_perfect'    : 'extras has been built',
             },
             'doc-build': {
-                'tag'                : self.dirs.build / '.doc-built',
+                'tag'                : self.dirs.build / '.built-doc',
                 'infinitive'         : 'build doc',
                 'present_continuous' : 'building doc',
-                'present_perfect'    : 'doc-built',
+                'present_perfect'    : 'doc has been built',
             },
             'install': {
                 'tag'                : self.dirs.build / '.installed',
                 'infinitive'         : 'install',
                 'present_continuous' : 'installing',
-                'present_perfect'    : 'installed',
+                'present_perfect'    : 'has been installed',
             },
             'extra-install': {
-                'tag'                : self.dirs.build / '.extra-installed',
+                'tag'                : self.dirs.build / '.installed-extra',
                 'infinitive'         : 'install extras',
                 'present_continuous' : 'installing extras',
-                'present_perfect'    : 'extras-installed',
+                'present_perfect'    : 'extras has been installed',
             },
             'doc-install': {
-                'tag'                : self.dirs.build / '.doc-installed',
+                'tag'                : self.dirs.build / '.installed-doc',
                 'infinitive'         : 'install doc',
                 'present_continuous' : 'installing doc',
-                'present_perfect'    : 'doc-installed',
+                'present_perfect'    : 'doc has been installed',
             },
             'manual-install': {
-                'tag'                : self.dirs.build / '.manual-installed',
-                'infinitive'         : 'install manually',
-                'present_continuous' : 'installing manually',
-                'present_perfect'    : 'manually-installed',
+                'tag'                : self.dirs.build / '.installed-manual',
+                'infinitive'         : 'install manuall components',
+                'present_continuous' : 'installing manual components',
+                'present_perfect'    : 'manual components has been installed',
             },
             'cleanup': {
                 'tag'                : self.dirs.build / '.cleaned',
                 'infinitive'         : 'cleanup',
                 'present_continuous' : 'cleaning up',
-                'present_perfect'    : 'cleaned',
+                'present_perfect'    : 'has been cleaned',
             },
         }
+    
+    def _remove_all_step_tags_from(self,
+        step
+    ):
+        assert step in self._steps, f"[AutotoolsPackage][BUG] Unknown step '{step}'!"
+
+        # Get the index of the target step
+        target_step_index = list(self._steps.keys()).index(step)
+        # Remove all tags after the target step
+        for step_index, step in enumerate(list(self._steps.keys())):
+            if step_index >= target_step_index:
+                if self._steps[step]['tag'].exists():
+                    self.conanfile.output.info(f"Removing '{self._steps[step]['tag'].as_posix()}' tag...")
+                    self._steps[step]['tag'].unlink()
 
     def _with_step_tag(self, step):
         
@@ -331,7 +350,7 @@ class AutotoolsPackage:
             self.conanfile.output.error(f"Failed to {self._to_infinitive(step)} '{self.description.name}' ({e})")
             raise
 
-        self.conanfile.output.success(f"'{self.description.name}' has been {self._to_present_perfect(step)} successfully.")
+        self.conanfile.output.success(f"'{self.description.name}' {self._to_present_perfect(step)} successfully.")
 
     def _run_step(self,
         step,
@@ -340,7 +359,7 @@ class AutotoolsPackage:
         with self._with_step_tag(step) as step_guard:
             
             if step_guard.exists():
-                self.conanfile.output.info(f"'{self.description.name}' has been already {self._to_present_perfect(step)}. Skipping...")
+                self.conanfile.output.info(f"'{self.description.name}' {self._to_present_perfect(step)} yet. Skipping...")
                 return False
             
             self._process_step(
@@ -350,7 +369,7 @@ class AutotoolsPackage:
 
             return True
 
-    def _make_dirs(self,
+    def _create_dirs(self,
         skip = [ 'src' ]
     ):
         for name, path in self.dirs.__dict__.items():
@@ -494,19 +513,19 @@ class AutotoolsPackage:
                 if self._is_off_build:
                     self.conanfile.output.success(f"Copying target files to the install directory...")
                     for pattern, dst in self.description.target_files.items():
-                        copy(self.conanfile,
-                            pattern = pattern.as_posix(),
-                            src     = self.dirs.offprefix,
-                            dst     = self.dirs.prefix / dst,
+                        copy_with_rename(self.conanfile,
+                            pattern = pattern,
+                            src     = f'{self.dirs.offprefix.as_posix()}',
+                            dst     = f'{self.dirs.prefix.as_posix()}/{dst}',
                         )
 
                 # Install extra files directly from the build tree if needed
                 for pattern, dst in extra_install_files.items():
                     self.conanfile.output.success(f"Copying extra files to the install directory...")
-                    copy(self.conanfile,
+                    copy_with_rename(self.conanfile,
                         pattern = pattern.as_posix(),
-                        src     = self.dirs.build,
-                        dst     = self.dirs.prefix / dst,
+                        src     = f'{self.dirs.build.as_posix()}',
+                        dst     = f'{self.dirs.prefix.as_posix()}/{dst}',
                     )
 
                 # For Windows, install msys2 runtime in the /lib directory

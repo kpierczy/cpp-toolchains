@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Tuesday, 8th October 2024 6:41:48 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 12:24:20 am by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -15,11 +15,13 @@
 import pathlib
 import contextlib
 import os
+import tempfile
+import shutil
 # External imports
 import patch_ng
 # Conan imports
 from conan.errors import ConanException
-from conan.tools.files import download, ftp_download, unzip
+from conan.tools.files import download, ftp_download, unzip, copy
 
 # =============================================================== get ============================================================== #
 
@@ -91,5 +93,71 @@ def get(
                     raise ConanException(f"Failed to apply patch '{patch.name}'")
 
     return src_dir
+
+# ======================================================== copy_with_rename ======================================================== #
+
+def copy_with_rename(
+    conanfile,
+    pattern,
+    src,
+    dst,
+    **kwargs,
+):
+    """
+    Wraps the `conan.tools.files.copy` function to provide capability of files renaming
+
+    Description
+    -----------
+    Standard `conan.tools.files.copy` treats the `dst` as the directory. This is unhandy
+    when it comes to installation of the target files during the pipeline as we need capability
+    to rename some files during the installation. This function differentiates `dst` into
+    files and directories depending on the presence of the trailing slash. If the `dst` ends
+    with the slash, the function just calls the `conan.tools.files.copy` with the given
+    arguments. Otherwise, the function treats the `dst` as the target file name (note that in this case
+    the pattern is expected to match at most one file) and renames the file during the installation.
+    """
+
+    # Print log message
+    conanfile.output.debug(f"Copying:")
+    conanfile.output.debug(f" - {pattern}")
+    conanfile.output.debug(f" - from {src}")
+    conanfile.output.debug(f" - to {dst}")
+    
+    # If the destination is a directory, just copy the files
+    if dst.endswith('/'):
+
+        copied_files = copy(conanfile, pattern=pattern, src=src, dst=dst, **kwargs)
+
+        conanfile.output.debug(f" - {len(copied_files)} file{'s' if len(copied_files) != 1 else ''} copied")
+
+    # Otherwise, treat the destination as the target file name
+    else:
+        
+        # Copy the files to the temporary directory
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            # Copy the files
+            copied_files = copy(conanfile, pattern=pattern, src=src, dst=tmp_dir, **kwargs)
+
+            assert len(copied_files) <= 1, f"Pattern '{pattern}' matches more than one file. Cannot rename the file!"
+
+            # Rename the file
+            if copied_files:
+
+                # Create the parent directory if it does not exist
+                pathlib.Path(dst).parent.mkdir(
+                    parents=True,
+                    exist_ok=True
+                )
+                
+                # Copy the file to the destination
+                shutil.copy(
+                    pathlib.Path(tmp_dir) / copied_files[0],
+                    pathlib.Path(dst)
+                )
+
+                conanfile.output.debug(f" - copied {copied_files[0]} to {dst}")
+
+    return copied_files
 
 # ================================================================================================================================== #

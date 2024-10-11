@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Thursday, 10th October 2024 10:52:57 am by Krzysztof Pierczyk (you@you.you)
+# @modified   Friday, 11th October 2024 10:01:40 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -43,7 +43,7 @@ class Gcc(AutotoolsPackage):
 
             # Resolve target files path patterns, if present
             if self.description.libc.target_files is not None:
-                libc_descriptor.target_files = self._resolve_libc_target_files(
+                libc_descriptor.target_files = self._resolve_target_files(
                     libc_descriptor.target_files
                 )
 
@@ -53,6 +53,12 @@ class Gcc(AutotoolsPackage):
                 target      = self.target,
                 pkg_version = self.pkg_version,
             ).build()
+
+        # Resolve target files path patterns, if present
+        if self.description.target_files is not None:
+            self.description.target_files = self._resolve_target_files(
+                self.description.target_files
+            )
 
         # Add basic GCC options
         self.description.config += [
@@ -135,14 +141,19 @@ class Gcc(AutotoolsPackage):
         )
 
         multilib_dirs = []
-
-        # Parse the output (replce the (;.*) suffix of each line with the '*' wildcard)
+        
+        # Parse the output (remove ';' and everything after it; prepend with the <target>/lib)
         for line in result.stdout.decode().splitlines():
-            multilib_dirs.append(re.sub(r';.*', '*', line))
+            multilib_dir_pattern = re.sub(r';.*', '', line)
+            if multilib_dir_pattern == '.':
+                multilib_dir_pattern = f'{self.target}/lib'
+            else:
+                multilib_dir_pattern = f'{self.target}/lib/{multilib_dir_pattern}'
+            multilib_dirs.append(multilib_dir_pattern)
 
         return multilib_dirs    
 
-    def _resolve_libc_target_files(self,
+    def _resolve_target_files(self,
         target_files,
     ):
         # Prepare mappings
@@ -154,15 +165,14 @@ class Gcc(AutotoolsPackage):
 
         # Resolve the target files
         for src, dst in target_files.items():
-            for pattern, mappings in mappings.items():
-                for mapping in mappings:
-
+            for pattern, replacements in mappings.items():
+                for replacement in replacements:
+                    
                     # Resolve the src and dst paths
-                    resolved_src = pathlib.Path(src.as_posix().replace(pattern, mapping))
-                    resolved_dst = pathlib.Path(dst.as_posix().replace(pattern, mapping))
-                    # If something has changed, add the resolved pair to the result
-                    if (src != resolved_src) or (dst != resolved_dst):
-                        result[resolved_src] = resolved_dst
+                    resolved_src = src.replace(pattern, replacement)
+                    resolved_dst = dst.replace(pattern, replacement)
+                    # Add the resolved pair to the result
+                    result[resolved_src] = resolved_dst
 
         return result
 

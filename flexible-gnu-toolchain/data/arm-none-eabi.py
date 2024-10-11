@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Thursday, 10th October 2024 5:10:04 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Friday, 11th October 2024 10:00:30 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -11,8 +11,6 @@
 
 # ============================================================= Imports ============================================================ #
 
-# System imports
-import pathlib
 # Package imports
 from gnu_toolchain.description import *
 
@@ -75,11 +73,11 @@ class Binutils(Common, BinutilsDescription):
     #    pointing to the off-tree location)
     # ------------------------------------------------------------
     target_files = {        
-        pathlib.Path('*') : '',
+        '*' : '',
     }
 
     cleanup_files = [
-        pathlib.Path('lib'),
+        'lib',
     ]
 
 # =============================================================== GCC ============================================================== #
@@ -178,9 +176,9 @@ class GccBase(GccCommon):
 
     cleanup_files = [
 
-        pathlib.Path('bin') / f'{target}-gccbug',
-        pathlib.Path('lib') / 'libiberty.a',
-        pathlib.Path('include'),
+        f'bin/{target}-gccbug',
+        f'lib/libiberty.a',
+        f'include',
 
     ]
 
@@ -220,12 +218,12 @@ class GccFinal(GccCommon):
 
     cleanup_files = [
 
-        pathlib.Path('bin') / f'{target}-gccbug',
-        pathlib.Path('lib') / 'libiberty.a',
-        pathlib.Path('include'),
+        f'bin/{target}-gccbug',
+        f'lib/libiberty.a',
+        f'include',
         
-        pathlib.Path(target) / 'lib' / '**' / 'libiberty.a',
-        pathlib.Path(target) / 'usr',
+        f'{target}/lib/**/libiberty.a',
+        f'{target}/usr',
 
     ]
 
@@ -368,18 +366,18 @@ class GccFinalNano(GccCommon):
     target_files = {
         
         # Multilibs
-        pathlib.Path('{multilib_dir}/libstdc++.a')  : pathlib.Path('{multilib_dir}/libstdc++_nano.a'),
-        pathlib.Path('{multilib_dir}/libsupc++.a')  : pathlib.Path('{multilib_dir}/libsupc++_nano.a'),
-        pathlib.Path('{multilib_dir}/libc.a')       : pathlib.Path('{multilib_dir}/libc_nano.a'),
-        pathlib.Path('{multilib_dir}/libg.a')       : pathlib.Path('{multilib_dir}/libg_nano.a'),
-        pathlib.Path('{multilib_dir}/librdimon.a')  : pathlib.Path('{multilib_dir}/librdimon_nano.a'),
-        pathlib.Path('{multilib_dir}/nano.specs')   : pathlib.Path('{multilib_dir}/'),
-        pathlib.Path('{multilib_dir}/rdimon.specs') : pathlib.Path('{multilib_dir}/'),
-        pathlib.Path('{multilib_dir}/nosys.specs')  : pathlib.Path('{multilib_dir}/'),
-        pathlib.Path('{multilib_dir}/*crt0.o')      : pathlib.Path('{multilib_dir}/'),
+        '{multilib_dir}/libstdc++.a'  : '{multilib_dir}/libstdc++_nano.a',
+        '{multilib_dir}/libsupc++.a'  : '{multilib_dir}/libsupc++_nano.a',
+        '{multilib_dir}/libc.a'       : '{multilib_dir}/libc_nano.a',
+        '{multilib_dir}/libg.a'       : '{multilib_dir}/libg_nano.a',
+        '{multilib_dir}/librdimon.a'  : '{multilib_dir}/librdimon_nano.a',
+        '{multilib_dir}/nano.specs'   : '{multilib_dir}/',
+        '{multilib_dir}/rdimon.specs' : '{multilib_dir}/',
+        '{multilib_dir}/nosys.specs'  : '{multilib_dir}/',
+        '{multilib_dir}/*crt0.o'      : '{multilib_dir}/',
 
         # LibC headers
-        pathlib.Path(target) / 'include/newlib.h' : pathlib.Path(target) / 'include/newlib-nano/newlib.h',
+        f'{target}/include/newlib.h' : f'{target}/include/newlib-nano/newlib.h',
 
     }
 
