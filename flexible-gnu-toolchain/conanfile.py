@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Thursday, 10th October 2024 2:53:52 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Friday, 11th October 2024 7:32:47 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -57,19 +57,17 @@ class GnuToolchainConan(ConanFile):
 
         # Prebuilt or from source
         'prebuilt' : [ True, False ],
-        
         # Toolchain target
-        'target' : [ 'ANY' ],
-        # GCC version
-        'with_gcc_version' : [ 'ANY' ],
+        'target' : [ None, 'ANY' ],
         
     } | FromSourceDriver.options | PrebuiltDriver.options
 
     default_options = {
 
-        'prebuilt'         : False,
-        'target'           : 'arm-none-eabi',
-        'with_gcc_version' : '14.2.0',
+        # By default, build from source
+        'prebuilt' : False,
+        # Default target
+        'target' : None,
 
     } | FromSourceDriver.default_options | PrebuiltDriver.default_options
 
@@ -101,12 +99,24 @@ class GnuToolchainConan(ConanFile):
         else:
             return FromSourceDriver(self)
         
+    @property
+    def _other_impl(self):
+        if self.info.options.prebuilt:
+            return FromSourceDriver(self)
+        else:
+            return PrebuiltDriver(self)
+        
     # ---------------------------------------------------------------------------- #
 
     def configure(self):
         self._impl.configure()
 
     def validate(self):
+
+        # Make sure target is set
+        if self.options.target is None:
+            raise ValueError("Target must be set!")
+
         self._impl.validate()
         
     def system_requirements(self):
@@ -139,15 +149,10 @@ class GnuToolchainConan(ConanFile):
         # Compiler and build type are not important for prebuilt packages
         self.info.settings.rm_safe("compiler")
         self.info.settings.rm_safe("build_type")
-
-        # Pick unused driver
-        if self.info.options.prebuilt:
-            other_impl = FromSourceDriver
-        else:
-            other_impl = PrebuiltDriver
         
         # Remove all options of the unused implementation
-        for opt in other_impl.options.keys():
-            self.info.options.rm_safe(opt)
+        for opt in self._other_impl.options.keys():
+            if opt not in self._impl.options.keys():
+                self.info.options.rm_safe(opt)
 
 # ================================================================================================================================== #

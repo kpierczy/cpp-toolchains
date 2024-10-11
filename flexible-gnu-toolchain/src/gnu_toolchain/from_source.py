@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Thursday, 10th October 2024 10:35:50 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Friday, 11th October 2024 7:06:53 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -47,6 +47,7 @@ class FromSourceDriver():
         "with_expat_version"    : [ 'ANY' ],
         # Versions
         "with_binutils_version" : [ 'ANY' ],
+        "with_gcc_version"      : [ 'ANY' ],
         "with_glibc_version"    : [ 'ANY' ],
         "with_newlib_version"   : [ 'ANY' ],
         "with_gdb_version"      : [ 'ANY' ],
@@ -75,6 +76,7 @@ class FromSourceDriver():
         "with_expat_version"    : "[>=2.4.6]",
         # Versions
         "with_binutils_version" : "2.43",
+        "with_gcc_version"      : "14.2.0",
         "with_glibc_version"    : "2.34",
         "with_newlib_version"   : "4.2.0.20211231",
         "with_gdb_version"      : "11.1",
