@@ -47,6 +47,6 @@ jobs:
     - name: Test arm-none-eabi from-source build
       run: |
         conan profile detect
-        conan build ./flexible-gnu-toolchain --options='&:target=arm-none-eabi'
+        conan create ./flexible-gnu-toolchain --options='&:target=arm-none-eabi' --build=missing
 
 # ================================================================================================================================== #
