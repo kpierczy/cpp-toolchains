@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:10:18 am
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Saturday, 12th October 2024 10:57:49 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Krzysztof Pierczyk © 2024
@@ -80,7 +80,7 @@ class GnuToolchainConan(ConanFile):
         "license",
     ]
 
-    # ---------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------ #
 
     @property
     def win_bash(self):
@@ -90,7 +90,7 @@ class GnuToolchainConan(ConanFile):
     def win_bash(self, value):
         pass
     
-    # ---------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------ #
 
     @property
     def _impl(self):
@@ -106,7 +106,7 @@ class GnuToolchainConan(ConanFile):
         else:
             return PrebuiltDriver(self)
         
-    # ---------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------ #
 
     def configure(self):
         self._impl.configure()
