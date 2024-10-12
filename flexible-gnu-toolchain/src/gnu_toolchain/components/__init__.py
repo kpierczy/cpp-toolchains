@@ -1,9 +1,9 @@
 # ====================================================================================================================================
 # @file       __init__.py
-# @author     Krzysztof Pierczyk (you@you.you)
-# @maintainer Krzysztof Pierczyk (you@you.you)
+# @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 10:19:17 am
-# @modified   Wednesday, 2nd October 2024 8:46:07 am by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024

@@ -1,9 +1,9 @@
 # ====================================================================================================================================
 # @file       windows
-# @author     Krzysztof Pierczyk (you@you.you)
-# @maintainer Krzysztof Pierczyk (you@you.you)
+# @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Monday, 7th October 2024 5:41:54 pm
-# @modified   Monday, 7th October 2024 10:13:38 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Monday, 7th October 2024 10:13:38 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @brief      Host profile dedicated for building the package on Windows. use it with `--profile/--profile:host` option.
 # 
 # 

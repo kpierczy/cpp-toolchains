@@ -1,9 +1,9 @@
 # ====================================================================================================================================
 # @file       common.py
-# @author     Krzysztof Pierczyk (you@you.you)
-# @maintainer Krzysztof Pierczyk (you@you.you)
+# @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Tuesday, 1st October 2024 12:32:27 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
