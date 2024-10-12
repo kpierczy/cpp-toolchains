@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 12:41:02 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -122,6 +122,15 @@ class Gcc(AutotoolsPackage):
 
             # GCC does not handle parallel doc installation very well on Linux
             doc_install_args = ([ '-j1' ] if (self.conanfile.settings.os == 'Linux') else None),
+
+            # Force C++11 (see GCC prerequisites, @note MSYS/MinGW GCC requires GNU extensions to make __POSIX_VISIBLE defined)
+            envs = {
+                'CXXFLAGS' : f'{os.environ.get("CXXFLAGS", "")} ' + (
+                    '-std=gnu++11'
+                        if (self.conanfile.settings.os == 'Windows') else
+                    '-std=c++11'
+                )
+            },
 
         )
 

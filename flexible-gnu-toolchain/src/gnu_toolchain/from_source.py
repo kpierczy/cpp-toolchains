@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 12:53:36 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -79,7 +79,7 @@ class FromSourceDriver():
         "with_gcc_version"      : "14.2.0",
         "with_glibc_version"    : "2.34",
         "with_newlib_version"   : "4.2.0.20211231",
-        "with_gdb_version"      : "11.1",
+        "with_gdb_version"      : "15.1",
                 
         # Source
         "with_binutils_url" : "https://ftp.gnu.org/gnu/binutils/binutils-{version}.tar.gz",
@@ -93,12 +93,7 @@ class FromSourceDriver():
     # ---------------------------------------------------------------------------- #
 
     def configure(self):
-
-        # Force C++11 (see GCC prerequisites, @note MSYS/MinGW GCC requires GNU extensions to make __POSIX_VISIBLE defined)
-        if self.conanfile.settings.os == 'Windows':
-            self.conanfile.settings.compiler.cppstd = 'gnu11'
-        else:
-            self.conanfile.settings.compiler.cppstd = 11
+        pass
 
     def validate(self):
 
@@ -113,6 +108,7 @@ class FromSourceDriver():
             Apt(self.conanfile).install([
                 "texinfo",
                 "texlive",
+                "libncurses-dev",
             ], update=True, check=True)
 
     def requirements(self):
@@ -165,6 +161,7 @@ class FromSourceDriver():
         # Hack the generator
         toolchain.arch_flag             = None
         toolchain.ndebug                = None
+        toolchain.cppstd                = None
         toolchain.gcc_cxx11_abi         = None
         toolchain.build_type_flags      = [ ]
         toolchain.build_type_link_flags = [ ]

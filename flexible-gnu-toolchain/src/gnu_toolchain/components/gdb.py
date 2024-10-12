@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 1:04:14 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -12,10 +12,8 @@
 # ============================================================= Imports ============================================================ #
 
 # System imports
-import sys
 import pathlib
 import os
-from copy import deepcopy
 # Private imports
 from gnu_toolchain.utils.autotools import AutotoolsPackage
 
@@ -70,6 +68,15 @@ class Gdb(AutotoolsPackage):
             ] if self.conanfile.settings.os != 'Windows' else [
                 'install-pdf',
             ],
+
+            # Force C++17 from GDB 15.0 onwards
+            envs = {
+                'CXXFLAGS' : f'{os.environ.get("CXXFLAGS", "")} ' + (
+                    '-std=gnu++17'
+                        if (self.description.version.major >= 15) else
+                    ''
+                )
+            },
             
         )
                                           

@@ -3,11 +3,16 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Wednesday, 2nd October 2024 6:29:53 am
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 12:50:48 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
 # ====================================================================================================================================
+
+# ============================================================= Imports ============================================================ #
+
+# External imports
+from packaging.version import Version
 
 # ======================================================== CommonDescription ======================================================= #
 
@@ -33,11 +38,13 @@ class CommonDescription:
 
         # Parse version of the component
         self.version = getattr(conanfile.options, f'with_{dep_name}_version', None)
-        self.version = str(self.version) if (self.version is not None) else None
+        if self.version is not None:
+            self.version = Version(str(self.version))
+            
         # Parse URL of the component
         self.url = getattr(conanfile.options, f'with_{dep_name}_url', None)
         self.url = str(self.url).format(
-            version = self.version   
+            version = str(self.version)   
         ) if (self.url is not None) else None
 
     def make_driver(self, **kwargs):

@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 1:23:51 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -11,6 +11,8 @@
 
 # ============================================================= Imports ============================================================ #
 
+# Standard imports
+import sys
 # Package imports
 from gnu_toolchain.description import *
 
@@ -412,6 +414,14 @@ class Gdb(GdbCommon):
         
 class GdbPython(GdbCommon):
 
+    """
+    To do
+    -----
+    Fix the Python GDB integration on Windows and Linux [1]
+
+    [1] https://github.com/ilg-deprecated/arm-none-eabi-gcc-build/issues/2)
+    """
+
     name = 'gdb'
     
     config = GdbCommon.config + [
@@ -450,8 +460,6 @@ class Description(ToolchainDescription):
 
             # GDB
             Gdb(conanfile),
-            # GDB with Python integration (not supported on Windows currently, see https://github.com/ilg-deprecated/arm-none-eabi-gcc-build/issues/2)
-            *([ GdbPython(conanfile) ] if conanfile.settings.os != 'Windows' else [ ]),
             
         ]
 

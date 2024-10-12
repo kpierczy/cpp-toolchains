@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Saturday, 12th October 2024 10:52:44 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 1:24:51 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -108,64 +108,97 @@ class AutotoolsPackage:
 
         clean_target     : str  = 'clean',
         clean_on_rebuild : bool = False,
+
+        envs : dict | None = { },
         
     ):
         """Downloads, configures and builds the autotools project"""
 
-        # Compile dirs
-        self._create_dirs()
+        with self._envs_context(envs):
 
-        # Create the autotools driver
-        autotools = Autotools(self.conanfile)
+            # Compile dirs
+            self._create_dirs()
 
-        # Clone the sources into <build>/src/binutils
-        self._clone_sources()
+            # Create the autotools driver
+            autotools = Autotools(self.conanfile)
 
-        # Check if the project has been already configured
-        configured = self._configure_project(
-            autotools
-        )
-        
-        # Remove build tags if the project has been configured
-        if configured:
-            self._remove_all_step_tags_from('build')
-        # Check if the project has been already built
-        built = self._build_project(
-            autotools,
-            build_target = target,
-            build_args = build_args,
-            doc_targets = doc_targets,
-            extra_targets = extra_targets,
-            clean_target = clean_target,
-            clean_build = (not configured) and clean_on_rebuild,
-        )
+            # Clone the sources into <build>/src/binutils
+            self._clone_sources()
 
-        # Remove install tags if the project has been built
-        if built:
-            self._remove_all_step_tags_from('install')
-        # Check if the project has been already installed
-        installed = self._install_project(
-            autotools,
-            install_target = install_target,
-            install_args = install_args,
-            extra_install_targets = extra_install_targets,
-            extra_install_args = extra_install_args,
-            doc_install_targets = doc_install_targets,
-            doc_install_args = doc_install_args,
-            manual_install_files = manual_install_files,
-        )
+            # Check if the project has been already configured
+            configured = self._configure_project(
+                autotools
+            )
+            
+            # Remove build tags if the project has been configured
+            if configured:
+                self._remove_all_step_tags_from('build')
+            # Check if the project has been already built
+            built = self._build_project(
+                autotools,
+                build_target = target,
+                build_args = build_args,
+                doc_targets = doc_targets,
+                extra_targets = extra_targets,
+                clean_target = clean_target,
+                clean_build = (not configured) and clean_on_rebuild,
+            )
 
-        # Remove cleanup tags if the project has been installed
-        if installed:
-            self._remove_all_step_tags_from('cleanup')
-        # Cleanup the installation
-        cleaned = self._cleanup_project()
+            # Remove install tags if the project has been built
+            if built:
+                self._remove_all_step_tags_from('install')
+            # Check if the project has been already installed
+            installed = self._install_project(
+                autotools,
+                install_target = install_target,
+                install_args = install_args,
+                extra_install_targets = extra_install_targets,
+                extra_install_args = extra_install_args,
+                doc_install_targets = doc_install_targets,
+                doc_install_args = doc_install_args,
+                manual_install_files = manual_install_files,
+            )
 
-        return (
-            configured or
-            built or
-            installed or
-            cleaned
+            # Remove cleanup tags if the project has been installed
+            if installed:
+                self._remove_all_step_tags_from('cleanup')
+            # Cleanup the installation
+            cleaned = self._cleanup_project()
+
+            return (
+                configured or
+                built or
+                installed or
+                cleaned
+            )
+    
+    # ------------------------------------------------------------------ #
+
+    def _envs_context(self,
+        envs : dict | None
+    ):
+        class _EnvsContext:
+
+            def __init__(self, autotools_package, envs):
+                self._envs = envs
+
+            def __enter__(self):
+                self._old_envs = { }
+                for key, value in self._envs.items():
+                    self._old_envs[key] = os.environ.get(key, None)
+                    os.environ[key] = value
+                return self
+
+            def __exit__(self, etype, value, traceback):
+                for key, value in self._old_envs.items():
+                    if value is not None:
+                        os.environ[key] = value
+                    else:
+                        os.environ.pop(key, None)
+
+        return _EnvsContext(
+            self,
+            envs
         )
     
     # ------------------------------------------------------------------ #
@@ -394,7 +427,7 @@ class AutotoolsPackage:
                     conanfile      = self.conanfile,
                     url            = self.description.url,
                     component_name = self.description.component_name,
-                    version        = self.description.version,
+                    version        = str(self.description.version),
                     destination    = self.dirs.src.as_posix(),
                 )
             except Exception as e:
