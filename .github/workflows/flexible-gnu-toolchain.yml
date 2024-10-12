@@ -39,11 +39,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install conan
-        apt install gcc
-        apt install build-essential
-        apt install cmake
-        apt install texinfo
-        apt install texlive
+        sudo apt install gcc
+        sudo apt install build-essential
+        sudo apt install cmake
+        sudo apt install texinfo
+        sudo apt install texlive
     - name: Test arm-none-eabi from-source build
       run: |
         conan build ./flexible-gnu-toolchain --options='&:target=arm-none-eabi'
