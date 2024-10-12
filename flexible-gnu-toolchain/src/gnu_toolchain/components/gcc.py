@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Friday, 11th October 2024 10:01:40 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 10:45:47 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -119,6 +119,9 @@ class Gcc(AutotoolsPackage):
             ] if self.conanfile.settings.os != 'Windows' else [
                 'install-html',
             ],
+
+            # GCC does not handle parallel doc installation very well on Linux
+            doc_install_args = ([ '-j1' ] if (self.conanfile.settings.os == 'Linux') else None),
 
         )
 

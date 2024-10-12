@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:17:30 am
-# @modified   Monday, 7th October 2024 1:20:48 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 10:48:51 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -27,7 +27,7 @@ class Newlib(AutotoolsPackage):
         # Build the project
         super().build(
         
-            extra_install_files = {
+            manual_install_files = {
                 pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : self.dirs.doc / 'pdf'  / 'libc.pdf',
                 pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.pdf'  : self.dirs.doc / 'pdf'  / 'libc.pdf',
                 pathlib.Path(self.target) / 'newlib' / 'libc' / 'libc.html' : self.dirs.doc / 'html' / 'libc.pdf',

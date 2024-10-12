@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Saturday, 12th October 2024 1:21:00 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 10:49:29 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -100,9 +100,11 @@ class AutotoolsPackage:
 
         install_target        : str         = 'install',
         install_args          : list | None = None,
-        doc_install_targets   : list        = [],
         extra_install_targets : list        = [],
-        extra_install_files   : dict        = {},
+        extra_install_args    : list | None = None,
+        doc_install_targets   : list        = [],
+        doc_install_args      : list | None = None,
+        manual_install_files  : dict        = {},
 
         clean_target     : str  = 'clean',
         clean_on_rebuild : bool = False,
@@ -146,9 +148,11 @@ class AutotoolsPackage:
             autotools,
             install_target = install_target,
             install_args = install_args,
-            doc_install_targets = doc_install_targets,
             extra_install_targets = extra_install_targets,
-            extra_install_files = extra_install_files,
+            extra_install_args = extra_install_args,
+            doc_install_targets = doc_install_targets,
+            doc_install_args = doc_install_args,
+            manual_install_files = manual_install_files,
         )
 
         # Remove cleanup tags if the project has been installed
@@ -488,29 +492,38 @@ class AutotoolsPackage:
     def _install_project(self,
         autotools             : Autotools,
         install_target        : str,
-        install_args          : list,
-        doc_install_targets   : list,
+        install_args          : list | None,
         extra_install_targets : list,
-        extra_install_files   : dict,
+        extra_install_args    : list | None,
+        doc_install_targets   : list,
+        doc_install_args      : list | None,
+        manual_install_files  : dict,
     ):
         modified = False
 
         # Configure the project in the build directory
         with contextlib.chdir(self.dirs.build):
 
-            def make_target(target):
-                autotools.make(target = target, args = install_args)
+            def make_target(target, extra_args = None):
+                autotools.make(
+                    target = target,
+                    args = (
+                        install_args if install_args else [ ]
+                    ) + (
+                        extra_args if extra_args else [ ]
+                    )
+                )
 
             def process_install():
                 make_target(install_target)
 
             def process_extra_install():
                 for target in extra_install_targets:
-                    make_target(target)
+                    make_target(target, extra_install_args)
 
             def process_doc_install():
                 for target in doc_install_targets:
-                    make_target(target)
+                    make_target(target, doc_install_args)
 
             def process_manual_install():
 
@@ -525,7 +538,7 @@ class AutotoolsPackage:
                         )
 
                 # Install extra files directly from the build tree if needed
-                for pattern, dst in extra_install_files.items():
+                for pattern, dst in manual_install_files.items():
                     self.conanfile.output.success(f"Copying extra files to the install directory...")
                     copy_with_rename(self.conanfile,
                         pattern = pattern.as_posix(),
