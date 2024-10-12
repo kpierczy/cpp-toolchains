@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Saturday, 12th October 2024 1:20:34 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:32:06 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -181,9 +181,9 @@ class FromSourceDriver():
             ).build()
 
     def package(self):
-        copy(self,
+        copy(self.conanfile,
             pattern = '*',
-            src     = AutotoolsPackage.make_dirs(self).install.as_posix(),
+            src     = AutotoolsPackage.make_dirs(self.conanfile).prefix.as_posix(),
             dst     = self.conanfile.package_folder,
         )
     
