@@ -1,0 +1,51 @@
+# ====================================================================================================================================
+# @file       flexible-gnu-toolchain.yml
+# @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @date       Saturday, 12th October 2024 11:12:03 pm
+# @modified   Saturday, 12th October 2024 11:12:03 pm by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# 
+# 
+# @copyright PG Techonologies © 2024
+# ====================================================================================================================================
+
+name: Flexible GNU Toolchain package
+
+# ============================================================ Triggers ============================================================ #
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    
+# ============================================================== Jobs ============================================================== #
+
+jobs:
+
+  arm-none-eabi:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install conan
+        apt install gcc
+        apt install build-essential
+        apt install cmake
+        apt install texinfo
+        apt install texlive
+    - name: Test arm-none-eabi from-source build
+      run: |
+        conan build ./flexible-gnu-toolchain --options='&:target=arm-none-eabi'
+
+# ================================================================================================================================== #
