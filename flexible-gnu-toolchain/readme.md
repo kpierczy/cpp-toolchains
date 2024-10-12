@@ -10,4 +10,4 @@ last failed step (assuming the problem has been fixed). To make advantage of thi
 
 ## About Windows support
 
-At the moment, when built under Windows, the package assumes usage of the `msys2/cci.latest`'s `x86_64-pc-msys` compiler. After the build succeeds, required MSYS2 DLLs are copied into the package's `bin` directory which is provided to the package's consumer context. You can avoid manual specification of the compiler source by simply utilizing the bundled host profile `flexible-gnu-toolchain/windows`.
+At the moment, when built under Windows, the package detectes if it uses the `msys2/cci.latest`'s `x86_64-pc-msys` as a compiler. If so, after the build succeeds, required MSYS2 DLLs are copied into the package's `bin` directory which is provided to the package's consumer context. You can avoid manual specification of the compiler source by simply utilizing the bundled host profile `flexible-gnu-toolchain/windows`.

@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 12:16:57 pm
-# @modified   Saturday, 12th October 2024 1:18:55 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:21:00 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -533,8 +533,8 @@ class AutotoolsPackage:
                         dst     = f'{self.dirs.prefix.as_posix()}/{dst}',
                     )
 
-                # For Windows, install msys2 runtime in the /lib directory
-                if self.conanfile.settings.os == 'Windows':
+                # For Windows, install msys2 runtime in the /lib directory if we use it
+                if (self.conanfile.settings.os == 'Windows') and ('msys2' in self.conanfile.dependencies.build):
                     msys_bin = pathlib.Path(self.conanfile.dependencies.build['msys2'].package_folder) / 'bin/msys64/usr/bin'
                     for file in self.msys_dlls:
                         shutil.copy(msys_bin / file, self.dirs.prefix / 'bin' / file)

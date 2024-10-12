@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (you@you.you)
 # @maintainer Krzysztof Pierczyk (you@you.you)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Friday, 11th October 2024 7:06:53 pm by Krzysztof Pierczyk (you@you.you)
+# @modified   Saturday, 12th October 2024 1:20:34 pm by Krzysztof Pierczyk (you@you.you)
 # 
 # 
 # @copyright Your Company © 2024
@@ -106,8 +106,6 @@ class FromSourceDriver():
         if self.conanfile.settings.os == 'Windows':
             if self.conanfile.settings.compiler != 'gcc':
                 raise ValueError(f"On Windows only GCC (MinGW) is supported as a host compiler (current compiler: {self.conanfile.settings.compiler})")
-            if 'msys2' not in self.conanfile.dependencies.build:
-                raise ValueError(f"On Windows MSYS2 is required to build the toolchain ({self.conanfile.dependencies.build})")
 
     def system_requirements(self):
 
