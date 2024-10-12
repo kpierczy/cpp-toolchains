@@ -1,5 +1,7 @@
 *
 
+# Keep github actions
+!.github/
 # Keep packages
 !flexible-gnu-toolchain/
 !flexible-gnu-toolchain/**

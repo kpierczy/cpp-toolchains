@@ -46,6 +46,7 @@ jobs:
         sudo apt install texlive
     - name: Test arm-none-eabi from-source build
       run: |
+        conan profile detect
         conan build ./flexible-gnu-toolchain --options='&:target=arm-none-eabi'
 
 # ================================================================================================================================== #
