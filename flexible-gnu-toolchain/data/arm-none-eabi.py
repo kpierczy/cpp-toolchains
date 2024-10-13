@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 9:16:08 am
-# @modified   Sunday, 13th October 2024 1:23:51 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 11:15:48 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright PG Techonologies © 2024
@@ -407,31 +407,30 @@ class GdbCommon(Common, GdbDescription):
 class Gdb(GdbCommon):
 
     name = 'gdb-no-python'
-    
-    config = GdbCommon.config + [
-        "--with-python=no",
-    ]
+
+    with_python = False
         
 class GdbPython(GdbCommon):
 
-    """
-    To do
-    -----
-    Fix the Python GDB integration on Windows and Linux [1]
-
-    [1] https://github.com/ilg-deprecated/arm-none-eabi-gcc-build/issues/2)
-    """
-
     name = 'gdb'
+
+    with_python = True
     
     config = GdbCommon.config + [
         "--program-suffix=-py",
-        "--with-python=yes",
     ]
 
 # ============================================================ Script ============================================================== #
 
 class Description(ToolchainDescription):
+
+    """
+    To do
+    -----
+    Fix the Python GDB integration on Windows [1]
+
+    [1] https://github.com/ilg-deprecated/arm-none-eabi-gcc-build/issues/2)
+    """
 
     def __init__(self,
         conanfile         
@@ -460,6 +459,8 @@ class Description(ToolchainDescription):
 
             # GDB
             Gdb(conanfile),
+            # GDB with Python integration
+            *([ GdbPython(conanfile) ] if (conanfile.settings.os != 'Windows') else []),
             
         ]
 

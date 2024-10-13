@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 11:40:43 am
-# @modified   Sunday, 13th October 2024 1:04:14 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 11:48:14 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -40,6 +40,7 @@ class Gdb(AutotoolsPackage):
 
             f"--with-system-gdbinit={self.dirs.prefix.as_posix()}/{self._get_host_triplet(self.conanfile)}/{self.target}/lib/gdbinit",
             
+            f"--with-python=" + ("yes" if self.description.with_python else "no"),
         ]
 
         # Compile components to be disabled on current platform
@@ -56,10 +57,6 @@ class Gdb(AutotoolsPackage):
                 self.conanfile.output.warning(f"  - {module}")
                 self.description.config += [ f"--disable-{module}" ]
 
-        # Extend the environment to let the GDB find the zlib
-        os.environ["CFLAGS"]  = f"{os.environ.get('CFLAGS', '')}  -I{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/include"
-        os.environ["LDFLAGS"] = f"{os.environ.get('LDFLAGS', '')} -L{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/lib"
-
         # Build the project with Python integration
         super().build(
             
@@ -70,14 +67,27 @@ class Gdb(AutotoolsPackage):
             ],
 
             # Force C++17 from GDB 15.0 onwards
-            envs = {
-                'CXXFLAGS' : f'{os.environ.get("CXXFLAGS", "")} ' + (
-                    '-std=gnu++17'
-                        if (self.description.version.major >= 15) else
-                    ''
-                )
-            },
+            envs = self._make_env(),
             
         )
+        
+    # ---------------------------------------------------------------------------- #
+
+    def _make_env(self):
+
+        env = { }
+
+        # Extend the environment to let the GDB find the zlib
+        env["CFLAGS"]  = f"{os.environ.get('CFLAGS', '')}  -I{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/include"
+        env["LDFLAGS"] = f"{os.environ.get('LDFLAGS', '')} -L{pathlib.Path(self.conanfile.dependencies['zlib'].package_folder).as_posix()}/lib"
+
+        # Force C++17 from GDB 15.0 onwards
+        env['CXXFLAGS'] = f'{os.environ.get("CXXFLAGS", "")} ' + (
+            '-std=gnu++17'
+                if (self.description.version.major >= 15) else
+            ''
+        )
+            
+        return env
                                           
 # ================================================================================================================================== #

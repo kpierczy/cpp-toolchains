@@ -3,7 +3,7 @@
 # @author     Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @maintainer Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # @date       Tuesday, 1st October 2024 7:01:52 pm
-# @modified   Sunday, 13th October 2024 12:53:36 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
+# @modified   Sunday, 13th October 2024 11:39:33 am by Krzysztof Pierczyk (krzysztof.pierczyk@gmail.com)
 # 
 # 
 # @copyright Your Company © 2024
@@ -109,6 +109,7 @@ class FromSourceDriver():
                 "texinfo",
                 "texlive",
                 "libncurses-dev",
+                "python3-dev",
             ], update=True, check=True)
 
     def requirements(self):
